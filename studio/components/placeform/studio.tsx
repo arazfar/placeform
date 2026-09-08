@@ -1926,21 +1926,20 @@ export default function Studio() {
                     <strong>AIand cinematic video</strong>
                     <p>
                       {capabilities?.video
-                        ? 'Connected · verify model and price in Film'
+                        ? 'Connected · open Film to generate a video'
                         : 'API credential required'}
                     </p>
                     <code>AIAND_API_KEY</code>
                     <p>
-                      Accept video terms in the AIand console. Every submission
-                      displays a live quote; H3 availability is checked against
-                      the account’s video catalog.
+                      Film checks your video terms, model availability, and live
+                      price automatically. Prepare model frames, then generate.
                     </p>
                     <a
-                      href="https://docs.aiand.com/api/videos/"
+                      href="https://console.aiand.com/video"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Video API documentation <ArrowUpRight size={13} />
+                      AIand video console <ArrowUpRight size={13} />
                     </a>
                   </div>
                   <span className="pill">

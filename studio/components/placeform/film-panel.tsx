@@ -5,7 +5,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Play, Download, ArrowUpRight, RefreshCw, Film } from 'lucide-react';
 import JSZip from 'jszip';
 import { Progress } from '@/components/ui/progress';
@@ -14,6 +14,7 @@ import { filmShots, type SceneAPI } from './scene';
 import { type BuildingSpec } from '@/lib/spec';
 import { download } from '@/lib/download';
 import { saveMedia, loadMedia } from '@/lib/media-store';
+import { videoReadiness, type VideoCatalog } from '@/lib/video-readiness';
 export type VideoJob = {
   id: string;
   projectId: string;
@@ -29,19 +30,12 @@ export type VideoJob = {
   review?: string[];
 };
 type APIData = Partial<VideoJob> &
-  Catalog & {
+  VideoCatalog & {
     id: string;
     error?: string;
     uncertain?: boolean;
     data?: Array<VideoJob & { created_at: number }>;
   };
-type Catalog = {
-  model: {
-    id: string;
-    pricing: { resolution: string; per_second: string; currency: string }[];
-  } | null;
-  checkedAt: string;
-};
 export default function FilmPanel({
   spec,
   api,
@@ -55,7 +49,9 @@ export default function FilmPanel({
     [selected, setSelected] = useState(0),
     [progress, setProgress] = useState(0),
     [busy, setBusy] = useState(''),
-    [catalog, setCatalog] = useState<Catalog | null>(null),
+    [catalog, setCatalog] = useState<VideoCatalog | null>(null),
+    [checkingConnection, setCheckingConnection] = useState(true),
+    [connectionError, setConnectionError] = useState(''),
     [jobs, setJobs] = useState<VideoJob[]>([]),
     [hydrated, setHydrated] = useState(false),
     [preview, setPreview] = useState(''),
@@ -73,6 +69,27 @@ export default function FilmPanel({
   } | null>(null);
   const shot = shots[selected],
     price = catalog?.model?.pricing.find((p) => p.resolution === '768p');
+  const readinessError = videoReadiness(catalog);
+  const refreshCatalog = useCallback(async (signal?: AbortSignal) => {
+    setCheckingConnection(true);
+    setCatalog(null);
+    setConnectionError('');
+    try {
+      const r = await fetch('/api/video', { signal, cache: 'no-store' });
+      const v = (await r.json()) as APIData;
+      if (!r.ok) throw new Error(v.error || 'Video connection failed.');
+      if (!signal?.aborted) setCatalog(v);
+    } catch (e) {
+      if (!signal?.aborted) setConnectionError((e as Error).message);
+    } finally {
+      if (!signal?.aborted) setCheckingConnection(false);
+    }
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void refreshCatalog(controller.signal);
+    return () => controller.abort();
+  }, [refreshCatalog]);
   useEffect(() => {
     try {
       const v = JSON.parse(
@@ -173,20 +190,6 @@ export default function FilmPanel({
     setFirstURL(URL.createObjectURL(f.first));
     setLastURL(URL.createObjectURL(f.last));
   }
-  async function refreshCatalog() {
-    const r = await fetch('/api/video');
-    const v = (await r.json()) as APIData;
-    if (!r.ok) throw new Error(v.error || 'Video request failed.');
-    setCatalog(v);
-    if (!v.model)
-      onMessage(
-        'MiniMax H3 is not available in this account’s current catalog.',
-      );
-    else
-      onMessage(
-        'Live AIand model and price verified. Review the frames and prompt before generating.',
-      );
-  }
   async function record() {
     if (!api) throw new Error('The model is loading.');
     const clip = await api.record({ ...shot, seconds }, setProgress);
@@ -198,6 +201,8 @@ export default function FilmPanel({
     );
   }
   async function submit() {
+    if (checkingConnection || readinessError)
+      throw new Error(readinessError || 'Wait for the video connection check.');
     if (!price) throw new Error('Verify the live model and price first.');
     if (
       !frames.current ||
@@ -628,26 +633,44 @@ export default function FilmPanel({
           <p>
             {price
               ? `Live quote: ${(Number(price.per_second) * seconds).toFixed(2)} ${price.currency.toUpperCase()} for ${seconds} seconds.`
-              : `Illustrative estimate: $${(0.08 * seconds).toFixed(2)} for ${seconds}s at the documented $0.08/s example rate. Live price unverified.`}
+              : checkingConnection
+                ? 'Checking the live price before generation.'
+                : 'Live price unavailable.'}
+          </p>
+          <p>
+            <output>
+              {checkingConnection
+                ? 'Checking AIand connection…'
+                : connectionError ||
+                  readinessError ||
+                  'Connected · video terms accepted'}
+            </output>
           </p>
           <a
-            href="https://docs.aiand.com/api/videos/"
+            href="https://console.aiand.com/video"
             target="_blank"
             rel="noreferrer"
           >
-            Provider documentation <ArrowUpRight size={12} />
+            Open AIand video console <ArrowUpRight size={12} />
           </a>
         </div>
         <button
           className="outline-button"
-          disabled={!!busy}
-          onClick={() => guarded('Checking model and price…', refreshCatalog)}
+          disabled={!!busy || checkingConnection}
+          onClick={() => void refreshCatalog()}
         >
-          <RefreshCw size={14} /> Verify live model & price
+          <RefreshCw size={14} /> Refresh video connection
         </button>
         <button
           className="accent-button"
-          disabled={!price || !firstURL || !!busy || prompt.length < 8}
+          disabled={
+            checkingConnection ||
+            !!readinessError ||
+            !price ||
+            !firstURL ||
+            !!busy ||
+            prompt.length < 8
+          }
           onClick={() => guarded('Submitting to AIand…', submit)}
         >
           Generate ·{' '}
@@ -656,10 +679,14 @@ export default function FilmPanel({
             : 'Connect AIand'}{' '}
           <ArrowUpRight size={15} />
         </button>
+        {!firstURL && !checkingConnection && !readinessError && (
+          <p className="fineprint">
+            Prepare model frames, then review the prompt and click Generate.
+          </p>
+        )}
         <p className="fineprint">
-          Paid API usage. Credentials stay on the server. The key owner must
-          accept video terms in the AIand console. Submitted renders cannot be
-          stopped. Download completed films within 30 days.
+          Paid API usage. Credentials stay on the server. Submitted renders
+          cannot be stopped. Download completed films within 30 days.
         </p>
       </aside>
     </div>
