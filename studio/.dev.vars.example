@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development. Never commit populated credentials.
+OPENAI_API_KEY=
+OPENAI_REALTIME_MODEL=gpt-realtime-2.1
+AIAND_API_KEY=
