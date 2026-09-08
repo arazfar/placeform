@@ -9,7 +9,7 @@ import {
 import {
   clone,
   concepts,
-  createDemo,
+  createPortlandDemo as createDemo,
   validSpec,
   conceptImage,
 } from '../lib/spec';
@@ -95,14 +95,14 @@ function harness() {
     },
   };
 }
-void test('fresh site preserves dimensions and selection, clears locks and demo assets, remains valid', () => {
+void test('fresh site preserves dimensions and selection, preserves locks and clears demo assets, remains valid', () => {
   const original = createDemo();
   original.locks = ['facade'];
   original.concept = 'C';
   const fresh = freshSiteDesign(original, siteAt([0, 0], 'Fresh'));
   assert.equal(fresh.height, original.height);
   assert.equal(fresh.concept, 'C');
-  assert.deepEqual(fresh.locks, []);
+  assert.deepEqual(fresh.locks, ['facade']);
   assert.deepEqual(fresh.evidence, []);
   assert.equal(fresh.directions, undefined);
   assert.equal(validSpec(fresh), true);

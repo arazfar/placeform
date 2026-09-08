@@ -7,7 +7,7 @@ export async function GET() {
       voiceModel: secret('OPENAI_REALTIME_MODEL') || 'gpt-realtime-2.1',
       videoModel: 'minimaxai/minimax-h3',
       generation: !!secret('OPENAI_API_KEY'),
-      assetGeneration: 'codex-or-openai',
+      assetGeneration: 'openai-sunburst-max',
       research: 'codex-or-openai',
     },
     { headers: { 'Cache-Control': 'no-store' } },

@@ -1,4 +1,11 @@
-import { concepts, validSpec, type BuildingSpec, type ConceptId } from './spec';
+import {
+  effectiveConcept,
+  imageSignature,
+  concepts,
+  validSpec,
+  type BuildingSpec,
+  type ConceptId,
+} from './spec';
 import { executeAction, type DesignAction } from './commands';
 
 export type GenerationKind = 'research' | 'concepts' | 'image' | 'design';
@@ -129,12 +136,20 @@ export function generationFingerprint(s: BuildingSpec, kind: GenerationKind) {
     view: _view,
     hour: _hour,
     assets: _assets,
+    imageReviews: _reviews,
+    reviewedConcept: _reviewedConcept,
     ...design
   } = s;
   return JSON.stringify(design);
 }
 export function generationPrompt(input: GenerationInput) {
-  const { assets: _assets, ...spec } = input.spec;
+  const {
+    assets: _assets,
+    imageReviews: _reviews,
+    ...spec
+  } = input.kind === 'image'
+    ? effectiveConcept(input.spec, input.concept)
+    : input.spec;
   const direction = (spec.directions || concepts).find(
     (d) => d.id === input.concept,
   );
@@ -145,7 +160,15 @@ export function generationPrompt(input: GenerationInput) {
     return `${common} Create exactly four locally grounded directions A,B,C,D with different names, palettes, facade composition, landscape and tradeoffs. The editable model's available recipes are A: single long hall, flat screened roof, deep masonry bays; B: stepped silver horizontal halls, terraces; C: three timber-screened gabled halls and planted courts; D: charcoal masonry courtyard volume, sawtooth roof. Material families stay A clay masonry, B folded metal, C timber screens, D charcoal masonry; refine their colors and accents within these families. Keep each corresponding recipe so images and model can be reconciled. Do not promise geometry outside these recipes. Keep approximate dimensions ${spec.length} x ${spec.width} x ${spec.height} metres. Keep name under 40 characters, subtitle under 90, description under 350, inspiration and tradeoff under 240 each, roof and landscape labels under 50, and each material label under 28 characters. The four colors and matching material labels MUST follow this semantic order: primary facade, entrance canopy/accent metal, secondary dark metal, landscape vegetation. The fourth entry is always planting, never another building material. Colors must be four #RRGGBB hex colors. Cite evidence record IDs in inspiration. Return ONLY JSON matching the supplied schema.`;
   if (input.kind === 'design')
     return `${common} Propose up to 8 supported model actions. Never change locks unless explicitly requested. Use type set with parameter finDepth(.2-2.5), finSpacing(1-6), height(8-26), length(30-120), width(20-65), canopyDepth(2-9), material/roof/landscape(A-D), hour(6-21); view perspective/entrance/aerial/north/south/east/west/detail; lock/unlock feature massing/facade/roof/landscape/canopy; mix massing/facade/roof/landscape A-D. Set unused string fields to empty string and unused value to empty string. If ambiguous or geometrically unsupported, return no actions and explain a short clarification or limitation in message. Do not present image changes as model geometry. Return ONLY JSON matching the supplied schema.`;
-  return `${common} Generate exactly one exceptional architectural competition visualization of direction ${input.concept}: ${JSON.stringify(direction)}. Three-quarter pedestrian view, 35mm lens, entire building in frame, calm bright overcast daylight, consistent approximate scale ${spec.length} x ${spec.width} x ${spec.height}m. Site orientation ${spec.site.rotation} degrees. Show credible service access, screened roof plant, secure service boundary, planted public edge and people for scale. No text or labels. Any attached image is a reference: preserve its silhouette, openings, roof and geometry, changing only what the architect requests. This is a concept visualization, not evidence about existing buildings. You MUST use the image generation tool; do not substitute drawings, SVG, or code. Save the generated image and return its absolute imagePath as JSON.`;
+  return `${common}
+Create one photorealistic architectural concept image for Placeform's speculative ${spec.demoContext ? 'Presidio' : spec.site.name} data-center study.
+Treat the supplied active project specification as authoritative for site boundary, orientation, building dimensions, program, selected components and locked features. Dimensions describe the building, not the site. Use the bundled research and Watt Wonder inspiration summary; do not browse external links during image generation.
+Unify three defining qualities: massing expressed through measured repetition, legible bays and the supported roof profile; tactile materials with restrained colors, recessed layers and credible joints; and landscape with visible gaps, separate public and service movement, planting and legible drainage.
+Direction: ${JSON.stringify(direction)}. The effective geometry is authoritative: massing ${spec.concept}, facade ${spec.material}, roof ${spec.roof}, landscape ${spec.landscape}, canopy depth ${spec.canopyDepth}m, fins ${spec.finDepth}m deep at ${spec.finSpacing}m spacing. Recipes: A long masonry hall with flat screened roof; B stepped metal halls and terraces; C three timber-screened gabled halls and planted courts; D charcoal courtyard and sawtooth roof. Mixed components follow the effective specification, not the direction label. Do not add freeform shells, additional buildings or geometry absent from the specification.
+Show the complete building in a 3:2 landscape, three-quarter exterior view with corrected verticals, natural diffuse daylight, restrained color, credible construction details, a legible entrance and subtle human scale. Keep operational scale visible.
+Show credible data halls, screened mechanical equipment, service access and secure boundaries. Public amenities belong outside secure halls. Depict mitigation features only where supported. Do not imply verified noise reduction, resource efficiency, habitat restoration, community endorsement or permission to build.
+For refinement, preserve the supplied reference camera, silhouette, openings, geometry and locked features except for explicitly requested unlocked changes. Locked features take precedence over conflicting requests; leave them unchanged. This image is design intent, not verified performance or reconstructed 3D geometry.
+Produce exactly one image without text, logos, watermarks or collage panels. Unresolved impacts belong in the accompanying research interface. Use the image generation tool. Save the generated image and return its absolute imagePath as JSON.`;
 }
 export function validateResult(
   kind: GenerationKind,
@@ -244,7 +267,17 @@ export function applyGeneration(
     };
   }
   if (kind === 'image')
-    return { ...s, assets: { ...s.assets, [concept]: r.image! } };
+    return {
+      ...s,
+      assets: { ...s.assets, [concept]: r.image! },
+      imageReviews: {
+        ...s.imageReviews,
+        [concept]: {
+          signature: imageSignature(effectiveConcept(s, concept)),
+          reviewed: false,
+        },
+      },
+    };
   let next = s;
   for (const raw of r.actions!) {
     const action = Object.fromEntries(

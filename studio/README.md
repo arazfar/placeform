@@ -1,6 +1,6 @@
 # Placeform
 
-An architectural exterior design studio built with React, TypeScript, MapLibre + Terra Draw, and React Three Fiber. The prepared Eastbank Exchange study opens with four generated concepts, nine primary-source design references, a detailed editable exterior model, schematic drawings, and a model-rendered film.
+An architectural exterior design studio built with React, TypeScript, MapLibre + Terra Draw, and React Three Fiber. New demos open at the Presidio. Draw a study boundary, use the prepared Watt Wonder research and four supported directions, generate one concept image, approve it, then develop the parametric Three.js model. Saved Portland projects retain their original context.
 
 ## Run locally
 
@@ -13,42 +13,35 @@ cp -n .dev.vars.example .dev.vars
 npm run dev -- --host 0.0.0.0 --port 3001
 ```
 
-Open http://localhost:3001. For subscription generation, install the Codex CLI and sign in once with `codex login` using your ChatGPT account. Placeform detects the existing login; no subscription token is copied into the app. Geometry, typed commands, drawings, GLB exports, recording, and the prepared demo work without provider credentials. Project history is saved in this browser; export a project JSON or review ZIP for a portable backup. Imported images consume browser storage. Export if the save indicator reports a storage failure.
+Open http://localhost:3001. For subscription generation, install the Codex CLI and sign in once with `codex login` using your ChatGPT account. Placeform detects the existing login; no subscription token is copied into the app. Image generation and refinement require OPENAI_API_KEY. Existing model projects, typed commands, drawings, GLB exports and recording remain available without provider credentials; the new Presidio demo requires a generated image review before entering 3D. Project history is saved in this browser; export a project JSON or review ZIP for a portable backup. Imported images consume browser storage. Export if the save indicator reports a storage failure.
 
 ## Provider connections
 
 Set secrets in `.dev.vars`, then restart the local server. For the hosted version, configure the same values as server secrets through Sites.
 
-- `OPENAI_API_KEY`: paid OpenAI Realtime voice using `gpt-realtime-2.1`, a WebRTC connection, server-mediated SDP exchange, and the same validated action interpreter as typed commands. Optional `OPENAI_REALTIME_MODEL` override. Microphone access requires HTTPS or localhost. Sessions stop after five minutes; provider usage is billed separately from ChatGPT/Codex. Current pricing is linked in Connections.
+- `OPENAI_API_KEY`: Sunburst image generation/refinement (`gpt-image-2.5-sunburst`, `quality: "max"`, `1536x1024`, PNG) and paid OpenAI Realtime voice using `gpt-realtime-2.1`, a WebRTC connection, server-mediated SDP exchange, and the same validated action interpreter as typed commands. Optional `OPENAI_REALTIME_MODEL` override. Microphone access requires HTTPS or localhost. Sessions stop after five minutes; provider usage is billed separately from ChatGPT/Codex. Current pricing is linked in Connections.
 - `AIAND_API_KEY`: AIand video API. The key owner must accept Video Service Terms in the AIand console. The app checks the live `/v1/videos/models` catalog for `minimaxai/minimax-h3`, verifies the 768p rate again before submitting, uploads first/last model frames, and requires the displayed Generate action. See `docs/video-research.md` for verified provider inputs and pricing. Unknown submission outcomes require history reconciliation before retrying; the app never automatically repeats a paid POST.
 
 No long-lived key is sent to browser code or stored in project exports. `/api/status` reports only connection availability. The hosted site is intended to remain owner-only: its provider keys and video history belong to the key owner. In-memory rate limits are a prototype guard, not an account-level billing cap.
 
-## A short design review
+## Presidio hackathon flow
 
-1. Explore the four concepts and their local evidence in Place.
-2. Develop A in 3D. Type “Deepen the fins to 1.2 metres.” Click Lock facade and attempt another edit. Undo or redo with the toolbar or Cmd/Ctrl+Z.
-3. Try “Use A’s massing, B’s facade, and C’s landscape” and “Show the entrance at sunset.” Connect voice for natural spoken instructions. Clicked elements and feature locks ground the voice session.
-4. Draw or edit a study boundary, then release it. Research, four directions, and four images generate and apply automatically. Search selections also start a fresh design. Track progress, stop, or retry from the persistent activity card; GeoJSON export remains available.
-5. Open the model before exporting the architectural review package. It contains seven vector SVG/PDF sheets, JSON specification, GeoJSON, source-backed brief, metre-scale GLB, and four actual model presentation views.
-6. In Film, watch the bundled original walkthrough or prepare and record a current-revision shot. The four shots total 27 seconds. Verify live AIand price, review frames/prompt, then generate. Review completed video for architectural drift against the retained original clip.
+1. Start on Place at the Presidio. Draw a polygon; searching only moves the map and does not approve a parcel.
+2. Prepared board context and four supported design directions are already bundled. Drawing the boundary starts one image job for the active direction. No live research or concept calls run for this demo.
+3. Open Concepts to review the image, then choose **Approve image & develop in 3D**. Other directions generate on demand. Model navigation, Film and Drawings require this review for new demos.
+4. Refine through **Generate & review**, using the original concept image or an actual model frame as reference. Every image request uses Sunburst at maximum quality through the OpenAI API, with no subscription or lower-quality fallback.
+5. Explore typed or voice model edits, locks, undo/redo, drawing sheets and model recording. Image generation does not reconstruct arbitrary geometry: image and model use the same effective supported specification, including mixed components. Selecting a direction preserves entered dimensions.
+6. Export the review ZIP for original concept PNGs, specification, boundary, research, drawings and available model assets. Projects and original images persist in IndexedDB, with migration from the previous localStorage store. Keep exports for backup.
 
-## Research, concepts and model proposals in the UI
+The source snapshot is `lib/presidio-board.json`; curated evidence is in `lib/presidio.ts`. These are prepared board observations and interpretations, not fresh parcel verification. Board: https://www.are.na/oscar-hong/watt-wonder-presidio-design-inspiration. The precedent-gallery link is not a requirements form; the active specification supplies requirements.
 
-Open **Generate & review** from any stage. Local development uses the signed-in Codex CLI by default, with `codex exec` JSON events, isolated job directories, restricted tools, and the subscription's available allowance. Research browses primary sources; concept generation returns four named directions and palettes; image generation/editing uses the subscription image tool. No API keys are inherited by the Codex subprocess. The local adapter accepts localhost, same-origin requests with a per-server token.
+The automatic controller retains durable checkpoints, cancellation, stale-result exclusion, known-job retry and reload recovery. Unknown submission outcomes are not automatically retried. Manual design changes pause automatic application. Camera changes do not invalidate image review; geometry changes before review require a matching image. Subsequent model edits remain available after approval.
 
-Finishing a map edit starts a fresh, undoable design for that boundary. Existing feature locks, research, directions, and images are cleared; building dimensions and the active concept remain. No prepared demo images are substituted while generation is pending.
+## Other projects and providers
 
-1. Research runs first and applies its brief and citations automatically.
-2. Four locally grounded directions are created from that research and applied to the model and drawings.
-3. Four fresh images run concurrently and appear in Concepts as they finish. No start or apply approvals are required for this automatic workflow.
-4. The persistent activity card shows progress and the provider. Codex is preferred; when unavailable, the configured paid OpenAI API is used automatically. No available connection produces an actionable Retry state. Film, downloads, and exports stay separate.
-5. A new map edit supersedes and requests cancellation of old work. Relevant manual edits, undo, or switching projects pause automatic application; camera changes are allowed. Successful outputs remain available after a partial failure, and Retry submits only missing outputs. Unknown submission outcomes require provider-history reconciliation before starting another design.
-6. Browser reload recovers saved workflow stages and known provider jobs without resubmitting them. Workflow checkpoints and application receipts are stored in IndexedDB alongside standalone generation jobs. Storage is local to this browser; keep project exports for recovery.
+Outside the Presidio demo, the existing research → four directions → images workflow remains available. Boundary changes preserve dimensions and locks and clear old context/images. Text jobs can use the local signed-in Codex CLI; image jobs always use the OpenAI API. Research and concept replacement may require unlocking features first. Standalone results are reviewed before application.
 
-**Generate & review** remains available for optional research extensions, individual image refinements, and model proposals. These standalone jobs retain their explicit review/apply controls and existing saved-job compatibility. Model proposals remain bounded by supported geometry and feature locks.
-
-The hosted app cannot run your computer's Codex session. It uses the same UI with the **paid OpenAI API** option: GPT-5 mini and web search for research/text proposals, GPT-5 with GPT Image 2 for images. Responses run in background mode and are polled by ID; browser jobs and results use IndexedDB. Price information and request bounds appear before starting; token usage appears afterward. Automatic site generation uses the paid API when Codex is unavailable and displays that choice in its progress card. A submitted run never silently switches providers or retries an unknown paid submission. Voice and AIand video continue to use their separate APIs.
+Responses image jobs run in background mode and are polled by ID. The API uses GPT-5 orchestration and explicitly configures the Sunburst image tool. Access, quality, quota and size errors are surfaced without silently changing settings. Voice and AIand video retain their separate connections. The bundled Portland walkthrough is available only to legacy projects.
 
 Local Codex jobs are saved under `~/.cache/placeform/<workspace-hash>/`. Up to four jobs run concurrently, with a 15-minute timeout. Stopping/restarting the local server interrupts active subscription jobs; their records identify the interruption and offer retry. Provider background responses are subject to provider retention; browser storage is local to the current browser and origin. Keep a project export for portable backups.
 
@@ -63,12 +56,13 @@ Prepared images were generated with the built-in subscription image tool. Exact 
 ```sh
 npm run typecheck
 npm test
+npm run lint
 npm run build
 npm audit
 ```
 
-See `docs/verification.md` for the exercised browser journey and precise remaining limits.
+The Presidio tests cover prepared context, locks, dimensions, review gating, PNG persistence, single-image sequencing, retry, cancellation, stale results and reload. Live generation/refinement smoke tests require a configured API key; no provider success is inferred from mocked tests.
 
 ## Scope
 
-This is schematic architectural design, not construction or engineering documentation. The Portland study boundary is illustrative and existing occupation, ownership, zoning, utilities and parcel-specific flood status are unverified. The model represents equipment, operational zones, site access and context schematically. No noise, energy, cooling-water, carbon, ecological or flood-performance values are claimed. Four concepts are design-intent images; the detailed procedural model resolves their general vocabulary without claiming a literal photogrammetric reconstruction. Sun positions are art-directed; pedestrian navigation has no collision system. Drawings use project-local elevation axes and indicate their geographic long-axis bearing.
+This is schematic architectural design, not construction or engineering documentation. Study boundaries are speculative and existing occupation, ownership, zoning, utilities and parcel-specific flood status are unverified. The model represents equipment, operational zones, site access and context schematically. No noise, energy, cooling-water, carbon, ecological or flood-performance values are claimed. Four concepts are design-intent images; the detailed procedural model resolves their general vocabulary without claiming a literal photogrammetric reconstruction. Sun positions are art-directed; pedestrian navigation has no collision system. Drawings use project-local elevation axes and indicate their geographic long-axis bearing.

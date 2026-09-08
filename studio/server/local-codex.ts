@@ -340,6 +340,25 @@ export function localCodex(): Plugin {
               { error: 'Invalid project or generation request.' },
               400,
             );
+          if (input.kind === 'image')
+            return respond(
+              {
+                error:
+                  'Image generation and refinement require the OpenAI API with Sunburst at maximum quality.',
+              },
+              400,
+            );
+          if (
+            input.spec.demoContext &&
+            ['research', 'concepts'].includes(input.kind)
+          )
+            return respond(
+              {
+                error:
+                  'The Presidio demo uses prepared research and directions.',
+              },
+              400,
+            );
           respond(await launch(input), 202);
         } catch (error) {
           respond({ error: (error as Error).message }, 400);

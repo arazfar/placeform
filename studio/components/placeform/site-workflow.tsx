@@ -3,8 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { SiteWorkflowController, type SiteWorkflow } from '@/lib/site-workflow';
 import { generationCall, generationConnection } from '@/lib/generation-client';
 import { loadMedia, saveMedia } from '@/lib/media-store';
-import type { BuildingSpec } from '@/lib/spec';
-export type SiteWorkflowRequest = { id: string; spec: BuildingSpec };
+import type { BuildingSpec, ConceptId } from '@/lib/spec';
+export type SiteWorkflowRequest = {
+  id: string;
+  spec: BuildingSpec;
+  concept?: ConceptId;
+};
 export default function SiteWorkflowStatus({
   spec,
   request,
@@ -39,7 +43,15 @@ export default function SiteWorkflowStatus({
         connection: async () => {
           const { local, api } = await generationConnection();
           return {
-            provider: local.available ? 'codex' : api ? 'openai' : undefined,
+            provider: current.current.getSpec().demoContext
+              ? api
+                ? 'openai'
+                : undefined
+              : local.available
+                ? 'codex'
+                : api
+                  ? 'openai'
+                  : undefined,
             nonce: local.nonce || '',
           };
         },
@@ -79,7 +91,7 @@ export default function SiteWorkflowStatus({
     if (!loaded || !ready || !request || handled.current === request.id) return;
     handled.current = request.id;
     void controller
-      .start(request.spec)
+      .start(request.spec, request.concept)
       .catch(() =>
         setError(
           'Workflow could not be saved. Check browser storage and reload.',
@@ -114,7 +126,8 @@ export default function SiteWorkflowStatus({
         <span>{error || run?.message}</span>
         {run && (
           <small>
-            {run.steps.filter((s) => s.applied).length}/6 outputs applied
+            {run.steps.filter((s) => s.applied).length}/{run.steps.length}{' '}
+            outputs applied
             {run.provider
               ? ` · ${run.provider === 'codex' ? 'Codex subscription' : 'OpenAI API · paid usage'}`
               : ''}

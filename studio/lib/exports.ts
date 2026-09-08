@@ -32,6 +32,12 @@ export async function reviewPackage(
   onProgress: (s: string) => void,
 ) {
   const zip = new JSZip();
+  for (const [id, data] of Object.entries(spec.assets)) {
+    if (!data) continue;
+    const match = data.match(/^data:image\/(png|jpeg|webp);base64,(.+)$/);
+    if (match)
+      zip.file(`concepts/${id}.${match[1]}`, match[2], { base64: true });
+  }
   zip.file('building-specification.json', JSON.stringify(spec, null, 2));
   zip.file('site-boundary.geojson', JSON.stringify(spec.site.polygon, null, 2));
   for (const sheet of sheets)
@@ -49,7 +55,7 @@ export async function reviewPackage(
     JSON.stringify(
       {
         project: spec.name,
-        verifiedContext: projectSources,
+        preparedContext: projectSources,
         brief: spec.brief,
         siteAssumptions: spec.site.notes,
         impacts,

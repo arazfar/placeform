@@ -35,7 +35,7 @@ export default function SiteMap({
   onMessage,
 }: {
   spec: BuildingSpec;
-  onEditComplete: (s: Site) => void;
+  onEditComplete: (s: Site, drawn: boolean) => void;
   onMessage: (s: string) => void;
 }) {
   const el = useRef<HTMLDivElement>(null),
@@ -65,7 +65,7 @@ export default function SiteMap({
     const m = new maplibregl.Map({
       container: el.current,
       center: spec.site.center,
-      zoom: 16.4,
+      zoom: spec.boundaryConfirmed === false ? 14 : 16.4,
       pitch: 0,
       attributionControl: false,
       style: {
@@ -142,13 +142,14 @@ export default function SiteMap({
         ],
       });
       d.start();
-      d.addFeatures([
-        {
-          ...current.current.site.polygon,
-          id: crypto.randomUUID(),
-          properties: { mode: 'polygon' },
-        },
-      ]);
+      if (current.current.boundaryConfirmed !== false)
+        d.addFeatures([
+          {
+            ...current.current.site.polygon,
+            id: crypto.randomUUID(),
+            properties: { mode: 'polygon' },
+          },
+        ]);
       d.setMode('select');
       draw.current = d;
       if (import.meta.env.DEV) window.__PLACEFORM_MAP = { map: m, draw: d };
@@ -171,6 +172,7 @@ export default function SiteMap({
                 properties: { mode: 'polygon' },
                 geometry: last.geometry as GeoJSON.Polygon,
               }),
+              true,
             );
           }
         }
@@ -217,7 +219,10 @@ export default function SiteMap({
       });
       m.addSource('building', {
         type: 'geojson',
-        data: footprint(current.current),
+        data:
+          current.current.boundaryConfirmed === false
+            ? { type: 'FeatureCollection', features: [] }
+            : footprint(current.current),
       });
       m.addLayer({
         id: 'building-outline',
@@ -247,18 +252,26 @@ export default function SiteMap({
     const source = map.current?.getSource('building') as
       | maplibregl.GeoJSONSource
       | undefined;
-    void source?.setData(footprint(spec));
+    void source?.setData(
+      spec.boundaryConfirmed === false
+        ? { type: 'FeatureCollection', features: [] }
+        : footprint(spec),
+    );
     const key = JSON.stringify(spec.site.polygon.geometry);
-    if (draw.current && key !== boundaryKey.current) {
+    if (
+      draw.current &&
+      (key !== boundaryKey.current || spec.boundaryConfirmed === false)
+    ) {
       syncing.current = true;
       draw.current.clear();
-      draw.current.addFeatures([
-        {
-          ...spec.site.polygon,
-          id: crypto.randomUUID(),
-          properties: { mode: 'polygon' },
-        },
-      ]);
+      if (spec.boundaryConfirmed !== false)
+        draw.current.addFeatures([
+          {
+            ...spec.site.polygon,
+            id: crypto.randomUUID(),
+            properties: { mode: 'polygon' },
+          },
+        ]);
       boundaryKey.current = key;
       syncing.current = false;
       map.current?.easeTo({ center: spec.site.center, duration: 350 });
@@ -299,7 +312,7 @@ export default function SiteMap({
   }
   function choose(r: { display_name: string; lat: string; lon: string }) {
     const s = siteAt([Number(r.lon), Number(r.lat)], r.display_name);
-    onEditComplete(s);
+    onEditComplete(s, false);
     map.current?.flyTo({ center: s.center, zoom: 16.4 });
     setResults([]);
     setQ('');
@@ -398,7 +411,10 @@ export default function SiteMap({
         <div>
           <span>STUDY AREA</span>
           <strong>
-            {(siteArea(spec.site) / 10000).toFixed(2)} <small>ha</small>
+            {spec.boundaryConfirmed === false
+              ? '—'
+              : (siteArea(spec.site) / 10000).toFixed(2)}{' '}
+            <small>ha</small>
           </strong>
         </div>
         <div>
@@ -416,7 +432,12 @@ export default function SiteMap({
         </div>
       </div>
       {error && <div className="map-warning">{error}</div>}
-      {!fitsSite(spec) && (
+      {spec.boundaryConfirmed === false && (
+        <div className="map-warning">
+          Draw a study boundary to generate your first concept image.
+        </div>
+      )}
+      {spec.boundaryConfirmed !== false && !fitsSite(spec) && (
         <div className="map-warning">
           The current building extends beyond the boundary. Adjust the site or
           reduce the building dimensions.

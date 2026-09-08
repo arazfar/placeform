@@ -33,6 +33,7 @@ export async function generationCall(
   id?: string,
   input?: GenerationInput,
 ) {
+  if (method === 'POST' && input?.kind === 'image') provider = 'openai';
   return fetch(
     `${provider === 'codex' ? '/api/codex' : '/api/generation'}${id ? `?id=${encodeURIComponent(id)}` : ''}`,
     {

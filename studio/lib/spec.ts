@@ -1,3 +1,4 @@
+import { preparedPresidio } from './presidio';
 import type { sources } from './research';
 export type ConceptId = 'A' | 'B' | 'C' | 'D';
 export type Feature = 'massing' | 'facade' | 'roof' | 'landscape' | 'canopy';
@@ -19,6 +20,12 @@ export type Site = {
   notes: string;
 };
 export type BuildingSpec = {
+  demoContext?: 'presidio';
+  boundaryConfirmed?: boolean;
+  reviewedConcept?: ConceptId;
+  imageReviews?: Partial<
+    Record<ConceptId, { signature: string; reviewed: boolean }>
+  >;
   schema: 1;
   id: string;
   revision: number;
@@ -132,7 +139,7 @@ export const concepts: {
     landscape: 'Public planted apron',
   },
 ];
-export function createDemo(): BuildingSpec {
+export function createPortlandDemo(): BuildingSpec {
   return {
     schema: 1,
     id: 'central-eastside',
@@ -181,6 +188,126 @@ export function createDemo(): BuildingSpec {
     assets: {},
   };
 }
+export const presidioConcepts = concepts.map((direction, i) => ({
+  ...direction,
+  name: ['Porch & Bay', 'Horizon Works', 'Timber Courts', 'Quiet Commons'][i],
+  subtitle: [
+    'Measured bays and a sheltered threshold.',
+    'Stepped metal halls with open edges.',
+    'Three gabled halls and planted gaps.',
+    'A courtyard beneath a working roof.',
+  ][i],
+  description: [
+    'A long masonry hall gains human scale through deep repeated bays and a sheltered entrance. Public planting stays outside the secure operational edge.',
+    'Stepped metal halls articulate the operational volume with horizontal terraces, recessed dark layers and a clear visitor entrance.',
+    'Three timber-screened gabled halls frame planted courts. Repeated screens reveal depth and shadow while the technical enclosure remains legible.',
+    'Charcoal masonry and sawtooth roof forms frame a recessed entrance and planted courtyard, balancing civic presence with secure operations.',
+  ][i],
+  inspiration:
+    'Watt Wonder / Presidio board synthesis: measured repetition, tactile materials and landscape gaps (P02, P03, P05). Interpretation, not a parcel finding.',
+  colors: [
+    ['#985643', '#b88664', '#393d3c', '#697154'],
+    ['#b0b7b4', '#79786e', '#3e4545', '#688276'],
+    ['#8f6946', '#bba68b', '#353d3c', '#4e6344'],
+    ['#4b4b47', '#97968c', '#3f4445', '#838564'],
+  ][i],
+  materials: [
+    ['Clay masonry', 'Warm metal canopy', 'Dark metal', 'Meadow planting'],
+    ['Folded metal', 'Muted metal canopy', 'Dark metal', 'Planted edge'],
+    ['Timber screens', 'Warm canopy accent', 'Dark metal', 'Court planting'],
+    ['Charcoal masonry', 'Pale canopy accent', 'Dark metal', 'Civic planting'],
+  ][i],
+}));
+export function createDemo(): BuildingSpec {
+  const original = createPortlandDemo();
+  const center: [number, number] = [-122.4662, 37.7989];
+  // Valid internal map extent only; hidden until the user draws a study boundary.
+  const dx = 0.0007,
+    dy = 0.0004;
+  return preparedPresidio({
+    ...original,
+    id: 'presidio-demo',
+    name: 'Presidio Exchange',
+    boundaryConfirmed: false,
+    siteDesignPending: true,
+    directions: presidioConcepts,
+    site: {
+      ...original.site,
+      name: 'Presidio',
+      location: 'San Francisco, California',
+      center,
+      notes:
+        'Draw a speculative study boundary. Ownership, permitted use, ecology, utilities and engineering feasibility are unverified.',
+      polygon: {
+        type: 'Feature',
+        properties: { mode: 'polygon' },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [center[0] - dx, center[1] - dy],
+              [center[0] + dx, center[1] - dy],
+              [center[0] + dx, center[1] + dy],
+              [center[0] - dx, center[1] + dy],
+              [center[0] - dx, center[1] - dy],
+            ],
+          ],
+        },
+      },
+    },
+    assets: {},
+    imageReviews: {},
+  });
+}
+// Same direction retains mixed components; selecting another respects every lock.
+export function effectiveConcept(s: BuildingSpec, id: ConceptId) {
+  return id === s.concept ? clone(s) : applyConcept(s, id);
+}
+export function imageSignature(s: BuildingSpec) {
+  return JSON.stringify({
+    site: s.site,
+    length: s.length,
+    width: s.width,
+    height: s.height,
+    concept: s.concept,
+    material: s.material,
+    roof: s.roof,
+    landscape: s.landscape,
+    canopyDepth: s.canopyDepth,
+    finDepth: s.finDepth,
+    finSpacing: s.finSpacing,
+    directions: s.directions,
+    brief: s.brief,
+  });
+}
+export function canReviewImage(s: BuildingSpec, id: ConceptId) {
+  return (
+    !!s.assets[id] &&
+    s.imageReviews?.[id]?.signature === imageSignature(effectiveConcept(s, id))
+  );
+}
+export function canOpenModel(s: BuildingSpec) {
+  return (
+    !s.demoContext ||
+    (!!s.boundaryConfirmed &&
+      !!s.assets[s.reviewedConcept || s.concept] &&
+      !!s.imageReviews?.[s.reviewedConcept || s.concept]?.reviewed)
+  );
+}
+export function reviewConcept(s: BuildingSpec, id: ConceptId): BuildingSpec {
+  if (!canReviewImage(s, id))
+    throw new Error(
+      'Generate an image for the current design before reviewing it.',
+    );
+  return {
+    ...effectiveConcept(s, id),
+    reviewedConcept: id,
+    imageReviews: {
+      ...s.imageReviews,
+      [id]: { signature: s.imageReviews![id]!.signature, reviewed: true },
+    },
+  };
+}
 export function conceptImage(s: BuildingSpec, id: ConceptId) {
   return (
     s.assets[id] ||
@@ -196,9 +323,6 @@ export function applyConcept(s: BuildingSpec, id: ConceptId): BuildingSpec {
   const n = clone(s);
   if (!s.locks.includes('massing')) {
     n.concept = id;
-    n.length = 84;
-    n.width = 44;
-    n.height = id === 'B' ? 14 : 16;
   }
   if (!s.locks.includes('facade')) {
     n.material = id;
@@ -219,6 +343,31 @@ export const featureLabels: Record<Feature, string> = {
 export function validSpec(v: unknown): v is BuildingSpec {
   if (!v || typeof v !== 'object') return false;
   const s = v as BuildingSpec;
+  if (
+    s.reviewedConcept !== undefined &&
+    !['A', 'B', 'C', 'D'].includes(s.reviewedConcept)
+  )
+    return false;
+  if (s.demoContext !== undefined && s.demoContext !== 'presidio') return false;
+  if (
+    s.boundaryConfirmed !== undefined &&
+    typeof s.boundaryConfirmed !== 'boolean'
+  )
+    return false;
+  if (
+    s.imageReviews !== undefined &&
+    (!s.imageReviews ||
+      typeof s.imageReviews !== 'object' ||
+      Array.isArray(s.imageReviews) ||
+      Object.entries(s.imageReviews).some(
+        ([id, r]) =>
+          !['A', 'B', 'C', 'D'].includes(id) ||
+          !r ||
+          typeof r.signature !== 'string' ||
+          typeof r.reviewed !== 'boolean',
+      ))
+  )
+    return false;
   const ring = s.site?.polygon?.geometry?.coordinates?.[0];
   if (
     s.directions !== undefined &&

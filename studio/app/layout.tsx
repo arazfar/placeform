@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: 'Placeform — Architecture, from place',
   icons: { icon: '/favicon.svg' },
   description:
-    'An architectural studio for place-led data center exteriors. Explore Portland’s Central Eastside, develop concepts, and steer a shared 3D design.',
+    'An architectural studio for place-led data center exteriors. Explore the Presidio, review a generated concept, and steer a shared 3D design.',
 };
 
 export default function RootLayout({

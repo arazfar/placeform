@@ -150,12 +150,6 @@ export default function GenerationPanel({
                 },
               },
             ).then(json)) as GenerationJob;
-            if (data.result?.image) {
-              const blob = await fetch(data.result.image).then((r) => r.blob());
-              data.result.image = await importedImage(
-                new File([blob], 'generated.png', { type: blob.type }),
-              );
-            }
             if (!stopped)
               setJobs((rows) =>
                 rows.map((row) =>
@@ -206,6 +200,17 @@ export default function GenerationPanel({
     setError('');
     try {
       const current = state.current.spec;
+      if (current.demoContext && !current.boundaryConfirmed)
+        throw new Error('Draw the study boundary first.');
+      if (
+        current.demoContext &&
+        (target === 'research' || target === 'concepts')
+      )
+        throw new Error('The demo uses prepared research and directions.');
+      if (target === 'image' && !api)
+        throw new Error(
+          'Configure the OpenAI API to use Sunburst at maximum quality.',
+        );
       let image: string | undefined;
       if (target === 'image' && reference === 'model') {
         if (!capture)
@@ -224,10 +229,15 @@ export default function GenerationPanel({
             ? `/assets/concept-${concept.toLowerCase()}.png`
             : undefined);
         if (src) {
-          const blob = await fetch(src).then((r) => r.blob());
-          image = await importedImage(
-            new File([blob], 'reference.png', { type: blob.type }),
-          );
+          image = src.startsWith('data:')
+            ? src
+            : await fetch(src)
+                .then((r) => r.blob())
+                .then((blob) =>
+                  importedImage(
+                    new File([blob], 'reference.png', { type: blob.type }),
+                  ),
+                );
         }
       }
       const input: GenerationInput = {
@@ -238,7 +248,7 @@ export default function GenerationPanel({
         reference: image,
       };
       const result = await generationCall(
-        provider,
+        target === 'image' ? 'openai' : provider,
         connection.nonce || '',
         'POST',
         undefined,
@@ -255,7 +265,7 @@ export default function GenerationPanel({
       };
       setJobs((rows) => [saved, ...rows].slice(0, 60));
       onMessage(
-        `${labels[target]} started with ${provider === 'codex' ? 'your Codex subscription' : 'the OpenAI API'}. You can continue working.`,
+        `${labels[target]} started with ${result.provider === 'codex' ? 'your Codex subscription' : 'the OpenAI API'}. You can continue working.`,
       );
       return true;
     } catch (e) {
@@ -360,7 +370,13 @@ export default function GenerationPanel({
           <div className="generation-connection">
             <div>
               <span className="eyebrow">GENERATION CONNECTION</span>
-              <p>{connection.message}</p>
+              <p>
+                {kind === 'image'
+                  ? api
+                    ? 'Sunburst · maximum quality · OpenAI API connected'
+                    : 'Configure OPENAI_API_KEY on the server to generate images with Sunburst.'
+                  : connection.message}
+              </p>
             </div>
             <button
               className="tool-button"
@@ -377,17 +393,24 @@ export default function GenerationPanel({
                 value={kind}
                 onChange={(e) => setKind(e.target.value as GenerationKind)}
               >
-                {Object.entries(labels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
+                {Object.entries(labels)
+                  .filter(
+                    ([value]) =>
+                      !spec.demoContext ||
+                      !['research', 'concepts'].includes(value),
+                  )
+                  .map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
               </select>
             </label>
             <label className="field-label">
               RUN WITH
               <select
-                value={provider}
+                value={kind === 'image' ? 'openai' : provider}
+                disabled={kind === 'image'}
                 onChange={(e) =>
                   setProvider(e.target.value as 'codex' | 'openai')
                 }
@@ -427,13 +450,13 @@ export default function GenerationPanel({
               </select>
             </label>
           )}
-          {provider === 'openai' ? (
+          {kind === 'image' || provider === 'openai' ? (
             <p className="generation-cost">
               Paid API use. Text: GPT-5 mini, up to 10,000 output tokens;
-              research adds up to 8 web searches. Images: GPT Image 2, medium
-              1536 × 1024; one per individual job, plus GPT-5 orchestration.
-              Token usage is recorded below; this is metered billing, not a
-              fixed quote.{' '}
+              research adds up to 8 web searches. Images: GPT Image 2.5
+              Sunburst, maximum quality, PNG 1536 × 1024; one per individual
+              job, plus GPT-5 orchestration. Token usage is recorded below; this
+              is metered billing, not a fixed quote.{' '}
               <a
                 href="https://developers.openai.com/api/docs/pricing"
                 target="_blank"
@@ -462,7 +485,12 @@ export default function GenerationPanel({
                 batch ||
                 submitting ||
                 !loaded ||
-                (provider === 'codex' ? !connection.available : !api) ||
+                (kind === 'image'
+                  ? !api
+                  : provider === 'codex'
+                    ? !connection.available
+                    : !api) ||
+                (!!spec.demoContext && !spec.boundaryConfirmed) ||
                 (kind === 'concepts' && !spec.researchReady)
               }
               onClick={() => void start()}
@@ -476,7 +504,7 @@ export default function GenerationPanel({
               {kind === 'image' ? ` ${selected}` : ''}
             </button>
           </div>
-          {!!spec.directions && (
+          {!!spec.directions && !spec.demoContext && (
             <div className="generation-directions">
               <span className="field-label">GENERATE THE FOUR IMAGES</span>
               <button

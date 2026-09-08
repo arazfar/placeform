@@ -1,3 +1,4 @@
+import { imageSettings } from '@/lib/image-settings';
 import {
   secret,
   failure,
@@ -107,6 +108,12 @@ export async function POST(req: Request) {
     const input = JSON.parse(text);
     if (!validGenerationInput(input))
       return failure('Invalid project or generation request.');
+    if (input.spec.demoContext && !input.spec.boundaryConfirmed)
+      return failure('Draw the study boundary first.');
+    if (input.spec.demoContext && ['research', 'concepts'].includes(input.kind))
+      return failure(
+        'The Presidio demo uses prepared research and directions.',
+      );
     const image = input.kind === 'image';
     const prompt = generationPrompt(input).replace(
       'Save the generated image and return its absolute imagePath as JSON.',
@@ -135,10 +142,7 @@ export async function POST(req: Request) {
             tools: [
               {
                 type: 'image_generation',
-                model: 'gpt-image-2',
-                quality: 'medium',
-                size: '1536x1024',
-                output_format: 'png',
+                ...imageSettings,
               },
             ],
             tool_choice: { type: 'image_generation' },

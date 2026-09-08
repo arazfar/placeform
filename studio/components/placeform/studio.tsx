@@ -63,6 +63,9 @@ import {
 import {
   concepts,
   createDemo,
+  canOpenModel,
+  canReviewImage,
+  reviewConcept,
   clone,
   applyConcept,
   conceptImage,
@@ -93,8 +96,11 @@ import { drawingSVG, sheets, type SheetId } from '@/lib/drawings';
 import { drawingPDF, reviewPackage, taskPackage } from '@/lib/exports';
 import type { SceneAPI } from './scene';
 import SiteWorkflowStatus, { type SiteWorkflowRequest } from './site-workflow';
+import { moodBoardUrl, withinPresidio } from '@/lib/presidio';
+import { loadMedia, saveMedia } from '@/lib/media-store';
 import { freshSiteDesign } from '@/lib/site-workflow';
 import GenerationPanel, { type GenerationRequest } from './generation-panel';
+import ContextGallery from './context-gallery';
 const Scene = lazy(() => import('./scene'));
 const SiteMap = lazy(() => import('./site-map'));
 const FilmPanel = lazy(() => import('./film-panel'));
@@ -150,7 +156,7 @@ export default function Studio() {
   const [spec, setSpec] = useState<BuildingSpec>(createDemo),
     [past, setPast] = useState<BuildingSpec[]>([]),
     [future, setFuture] = useState<BuildingSpec[]>([]),
-    [tab, setTab] = useState('concepts'),
+    [tab, setTab] = useState('place'),
     [selected, setSelected] = useState<ConceptId>('A'),
     [element, setElement] = useState<Feature>(),
     [ready, setReady] = useState(false),
@@ -177,7 +183,7 @@ export default function Studio() {
     [taskPrompt, setTaskPrompt] = useState(''),
     [newName, setNewName] = useState(''),
     [newPlace, setNewPlace] = useState(''),
-    [newCoords, setNewCoords] = useState('45.5134, -122.6653'),
+    [newCoords, setNewCoords] = useState('37.7989, -122.4662'),
     [voiceMessages, setVoiceMessages] = useState<
       { role: string; text: string }[]
     >([]),
@@ -187,6 +193,7 @@ export default function Studio() {
       title: string;
     } | null>(null),
     [, setCustomSources] = useState<typeof sources>([]);
+  const projectWrites = useRef(Promise.resolve());
   const dragStart = useRef<BuildingSpec | null>(null);
   const stateRef = useRef({ spec, past, future, element });
   stateRef.current = { spec, past, future, element };
@@ -205,8 +212,31 @@ export default function Studio() {
   const c = projectConcepts.find((c) => c.id === selected)!,
     activeConcept = projectConcepts.find((c) => c.id === spec.concept)!;
   function openGeneration(kind: GenerationRequest['kind'], prompt = '') {
+    if (
+      stateRef.current.spec.demoContext &&
+      ['research', 'concepts'].includes(kind)
+    ) {
+      setTab('place');
+      notify('Prepared Presidio research and directions are ready below.');
+      return;
+    }
     setDialog(null);
     setGenerationRequest({ kind, prompt, key: Date.now() });
+  }
+  function developSelected() {
+    if (spec.demoContext) {
+      if (!spec.boundaryConfirmed) {
+        setTab('place');
+        notify('Draw the study boundary first.');
+        return;
+      }
+      if (!canReviewImage(spec, selected)) {
+        openGeneration('image');
+        return;
+      }
+      commit(reviewConcept(spec, selected));
+    } else commit(applyConcept(spec, selected));
+    setTab('model');
   }
   function notify(text: string) {
     setMessage(text);
@@ -214,33 +244,38 @@ export default function Studio() {
     statusTimer.current = setTimeout(() => setMessage(''), 9500);
   }
   useEffect(() => {
-    try {
-      const raw = decodeProjects(localStorage.getItem(storageKey));
-      const projects = Array.isArray(raw.projects)
-        ? raw.projects.filter((p: SavedState) => validSpec(p.project))
-        : [];
-      setSavedProjects(projects);
-      const active =
-        projects.find((p: SavedState) => p.project.id === raw.active) ||
-        projects[0];
-      if (active) {
-        setSpec(active.project);
-        setCustomSources(active.project.evidence || []);
-        setSelected(active.project.concept);
-        setPast((active.past || []).filter(validSpec).slice(-30));
-        setFuture((active.future || []).filter(validSpec).slice(-30));
+    void (async () => {
+      try {
+        const stored = await loadMedia('projects-v2');
+        const raw = decodeProjects(
+          stored ? await stored.text() : localStorage.getItem(storageKey),
+        );
+        const projects = Array.isArray(raw.projects)
+          ? raw.projects.filter((p: SavedState) => validSpec(p.project))
+          : [];
+        setSavedProjects(projects);
+        const active =
+          projects.find((p: SavedState) => p.project.id === raw.active) ||
+          projects[0];
+        if (active) {
+          setSpec(active.project);
+          setCustomSources(active.project.evidence || []);
+          setSelected(active.project.reviewedConcept || active.project.concept);
+          setPast((active.past || []).filter(validSpec).slice(-30));
+          setFuture((active.future || []).filter(validSpec).slice(-30));
+        }
+        const evidence = JSON.parse(
+          localStorage.getItem('placeform-imported-evidence') || '{}',
+        );
+        if (active && Array.isArray(evidence[active.project.id]))
+          setCustomSources(evidence[active.project.id]);
+      } catch {
+        notify(
+          'Saved data could not be read. The prepared study is available; you can import a project backup.',
+        );
       }
-      const evidence = JSON.parse(
-        localStorage.getItem('placeform-imported-evidence') || '{}',
-      );
-      if (active && Array.isArray(evidence[active.project.id]))
-        setCustomSources(evidence[active.project.id]);
-    } catch {
-      notify(
-        'Saved data could not be read. The prepared study is available; you can import a project backup.',
-      );
-    }
-    setReady(true);
+      setReady(true);
+    })();
     fetch('/api/status')
       .then((r) => r.json())
       .then((v) => setCapabilities(v as typeof capabilities))
@@ -258,36 +293,51 @@ export default function Studio() {
   useEffect(() => {
     if (!ready) return;
     const timer = setTimeout(() => {
-      try {
-        const raw = decodeProjects(localStorage.getItem(storageKey));
-        const other = (raw.projects || []).filter(
-          (p: SavedState) => p.project?.id !== spec.id && validSpec(p.project),
-        );
-        const entry = {
-          project: spec,
-          past: past.slice(-30),
-          future: future.slice(-30),
-          saved: new Date().toISOString(),
-        };
-        const projects = [entry, ...other].slice(0, 12);
-        localStorage.setItem(
-          storageKey,
-          encodeProjects({ active: spec.id, projects }),
-        );
-        setSavedProjects(projects);
-        setSaveState('Saved locally');
-      } catch {
-        setSaveState('Save failed');
-        notify(
-          'Browser storage is full or unavailable. Export your project JSON to preserve this revision.',
-        );
-      }
+      projectWrites.current = projectWrites.current
+        .catch(() => {})
+        .then(async () => {
+          try {
+            const stored = await loadMedia('projects-v2');
+            const raw = decodeProjects(
+              stored ? await stored.text() : localStorage.getItem(storageKey),
+            );
+            const other = (raw.projects || []).filter(
+              (p: SavedState) =>
+                p.project?.id !== spec.id && validSpec(p.project),
+            );
+            const entry = {
+              project: spec,
+              past: past.slice(-30),
+              future: future.slice(-30),
+              saved: new Date().toISOString(),
+            };
+            const projects = [entry, ...other].slice(0, 12);
+            await saveMedia(
+              'projects-v2',
+              new Blob([encodeProjects({ active: spec.id, projects })], {
+                type: 'application/json',
+              }),
+            );
+            setSavedProjects(projects);
+            setSaveState('Saved locally');
+          } catch {
+            setSaveState('Save failed');
+            notify(
+              'Browser storage is full or unavailable. Export your project JSON to preserve this revision.',
+            );
+          }
+        });
     }, 250);
     return () => clearTimeout(timer);
   }, [spec, past, future, ready]);
   useEffect(() => {
+    if (['model', 'film', 'drawings'].includes(tab) && !canOpenModel(spec)) {
+      setTab(spec.boundaryConfirmed ? 'concepts' : 'place');
+      notify('Review a generated concept image before opening the model.');
+      return;
+    }
     if (tab === 'model' || tab === 'film') setSceneMounted(true);
-  }, [tab]);
+  }, [tab, spec]);
   useEffect(() => {
     voice.current?.update(spec, element);
   }, [spec, element]);
@@ -485,10 +535,15 @@ export default function Studio() {
     const n = createDemo();
     n.id = crypto.randomUUID();
     n.name = newName.trim() || 'Untitled place study';
-    n.site = siteAt([+m[2], +m[1]], newPlace.trim() || 'New study site');
-    n.researchReady = false;
-    n.brief =
-      'Research this place before selecting an architectural direction.';
+    n.site = siteAt([+m[2], +m[1]], newPlace.trim() || 'Presidio');
+    if (!withinPresidio(n.site)) {
+      n.demoContext = undefined;
+      n.researchReady = false;
+      n.evidence = [];
+      n.directions = undefined;
+      n.brief =
+        'Draw a boundary and research this place before choosing a direction.';
+    }
     setSpec(n);
     setPast([]);
     setFuture([]);
@@ -504,7 +559,7 @@ export default function Studio() {
   function loadProject(p: SavedState) {
     setSpec(p.project);
     setCustomSources(p.project.evidence || []);
-    setSelected(p.project.concept);
+    setSelected(p.project.reviewedConcept || p.project.concept);
     setPast(p.past || []);
     setFuture(p.future || []);
     try {
@@ -581,6 +636,10 @@ export default function Studio() {
         {
           ...spec,
           assets: { ...spec.assets, [selected]: draftImport.data as string },
+          imageReviews: {
+            ...spec.imageReviews,
+            [selected]: { signature: '', reviewed: false },
+          },
         },
         'Concept image imported. Geometry remains a separate reviewable specification.',
       );
@@ -737,19 +796,21 @@ export default function Studio() {
                     className="image-expand"
                     title="Develop in 3D"
                     aria-label="Develop in 3D"
-                    onClick={() => {
-                      commit(applyConcept(spec, selected));
-                      setTab('model');
-                    }}
+                    onClick={developSelected}
                   >
                     <Box size={17} />
                   </button>
                   <div className="image-bottom">
-                    <span>45.5134° N &nbsp; 122.6653° W · REFERENCE STUDY</span>
+                    <span>
+                      {spec.site.center[1].toFixed(4)}°,{' '}
+                      {spec.site.center[0].toFixed(4)}° · REFERENCE STUDY
+                    </span>
                     <span>
                       {spec.assets[selected]
-                        ? 'Imported concept image'
-                        : 'AI concept image'}{' '}
+                        ? 'Concept image'
+                        : spec.demoContext
+                          ? 'Image pending'
+                          : 'AI concept image'}{' '}
                       · Design intent
                     </span>
                   </div>
@@ -788,17 +849,13 @@ export default function Studio() {
                     <span>DESIGN CONSIDERATION</span>
                     <p>{c.tradeoff}</p>
                   </div>
-                  <button
-                    className="accent-button"
-                    onClick={() => {
-                      commit(
-                        applyConcept(spec, selected),
-                        `${c.name} selected. ${spec.locks.length ? 'Locked features retained.' : 'The model is ready to explore.'}`,
-                      );
-                      setTab('model');
-                    }}
-                  >
-                    Develop this direction <ArrowRight size={17} />
+                  <button className="accent-button" onClick={developSelected}>
+                    {spec.demoContext
+                      ? canReviewImage(spec, selected)
+                        ? 'Approve image & develop in 3D'
+                        : 'Generate this direction'
+                      : 'Develop this direction'}{' '}
+                    <ArrowRight size={17} />
                   </button>
                 </aside>
               </div>
@@ -862,7 +919,9 @@ export default function Studio() {
                 >
                   <BookOpen size={15} />{' '}
                   {spec.researchReady
-                    ? 'Extend the research'
+                    ? spec.demoContext
+                      ? 'Prepared research'
+                      : 'Extend the research'
                     : 'Research this place'}
                 </button>
               </div>
@@ -874,16 +933,19 @@ export default function Studio() {
                 >
                   <SiteMap
                     spec={spec}
-                    onEditComplete={(site) => {
+                    onEditComplete={(site, drawn) => {
                       const current = stateRef.current.spec;
                       if (JSON.stringify(site) === JSON.stringify(current.site))
                         return;
                       const next = freshSiteDesign(current, site);
+                      if (!drawn) next.boundaryConfirmed = false;
                       commit(next);
-                      setSiteWorkflowRequest({
-                        id: crypto.randomUUID(),
-                        spec: next,
-                      });
+                      if (drawn)
+                        setSiteWorkflowRequest({
+                          id: crypto.randomUUID(),
+                          spec: next,
+                          concept: selected,
+                        });
                     }}
                     onMessage={notify}
                   />
@@ -897,7 +959,9 @@ export default function Studio() {
                   <div className="site-stats">
                     <div>
                       <strong>
-                        {(siteArea(spec.site) / 10000).toFixed(2)}
+                        {spec.boundaryConfirmed === false
+                          ? '—'
+                          : (siteArea(spec.site) / 10000).toFixed(2)}
                         <span>ha</span>
                       </strong>
                       <small>Illustrative boundary</small>
@@ -975,17 +1039,28 @@ export default function Studio() {
                 </div>
                 <span>
                   {shownSources.length} SOURCES ·{' '}
-                  {spec.evidence?.length
-                    ? 'GENERATED RESEARCH'
-                    : 'CHECKED SEP 2026'}
+                  {spec.demoContext
+                    ? 'PREPARED BOARD CONTEXT'
+                    : spec.evidence?.length
+                      ? 'GENERATED RESEARCH'
+                      : 'CHECKED SEP 2026'}
                 </span>
               </div>
               {!spec.researchReady && (
                 <p className="inline-warning">
-                  Local research is pending. The Portland references are
-                  precedent material, not evidence about this new location.
+                  Local research is pending. Precedent material is not evidence
+                  about this location.
                 </p>
               )}
+              {spec.demoContext && (
+                <p>
+                  <a href={moodBoardUrl} target="_blank" rel="noreferrer">
+                    Watt Wonder / Presidio inspiration board ↗
+                  </a>{' '}
+                  · Prepared September 2026; parcel conditions are unverified.
+                </p>
+              )}
+              {spec.demoContext === 'presidio' && <ContextGallery />}
               <div className="research-grid">
                 {shownSources.map((r) => (
                   <article className="research-card" key={r.id}>
@@ -995,9 +1070,11 @@ export default function Studio() {
                     </div>
                     <h3>{r.title}</h3>
                     <span className="evidence-label">
-                      {spec.evidence?.length
-                        ? 'CITED CONTEXT · REVIEW SOURCE'
-                        : 'VERIFIED CONTEXT'}
+                      {spec.demoContext
+                        ? 'BOARD SYNTHESIS · INTERPRETATION'
+                        : spec.evidence?.length
+                          ? 'CITED CONTEXT · REVIEW SOURCE'
+                          : 'VERIFIED CONTEXT'}
                     </span>
                     <p>{r.fact}</p>
                     <div className="design-response">
@@ -1081,7 +1158,7 @@ export default function Studio() {
               </div>
             </div>
           )}
-          {sceneMounted && (
+          {sceneMounted && canOpenModel(spec) && (
             <div
               className={`model-layout ${tab === 'film' ? 'film-model-layout' : ''}`}
               style={{
@@ -1696,13 +1773,13 @@ export default function Studio() {
                       setPast([]);
                       setFuture([]);
                       setSelected('A');
-                      setTab('concepts');
+                      setTab('place');
                       setDialog(null);
                     }}
                   >
                     <Layers size={15} />
                     <span>
-                      Open prepared Portland study
+                      Open Presidio demo
                       <small>
                         Reset the current demo to its original design
                       </small>

@@ -4,24 +4,44 @@ import {
   type GenerationJob,
   type GenerationKind,
 } from './generation';
-import { clone, type BuildingSpec, type ConceptId, type Site } from './spec';
+import { preparedPresidio, presidioBrief, withinPresidio } from './presidio';
+import {
+  presidioConcepts,
+  clone,
+  type BuildingSpec,
+  type ConceptId,
+  type Site,
+} from './spec';
 
 export function workflowFingerprint(s: BuildingSpec) {
   const { revision: _r, view: _v, hour: _h, ...rest } = s;
   return JSON.stringify(rest);
 }
 export function freshSiteDesign(s: BuildingSpec, site: Site): BuildingSpec {
-  return {
+  const demo = s.demoContext === 'presidio' && withinPresidio(site);
+  const next: BuildingSpec = {
     ...s,
     site,
-    locks: [],
+    locks: s.locks,
+    boundaryConfirmed: true,
+    demoContext: demo ? 'presidio' : undefined,
     researchReady: false,
     evidence: [],
     directions: undefined,
     assets: {},
+    imageReviews: {},
     siteDesignPending: true,
     brief: 'Researching this site and preparing four design directions…',
   };
+  delete next.reviewedConcept;
+  return demo
+    ? {
+        ...preparedPresidio(next),
+        brief: s.brief || presidioBrief,
+        directions: presidioConcepts,
+        siteDesignPending: false,
+      }
+    : next;
 }
 type Step = {
   kind: GenerationKind;
@@ -72,7 +92,9 @@ export class SiteWorkflowController {
       .then(() => this.deps.save(snapshot));
     return this.saves;
   }
-  async start(spec: BuildingSpec) {
+  async start(spec: BuildingSpec, selected: ConceptId = spec.concept) {
+    if (spec.demoContext && !spec.boundaryConfirmed)
+      throw new Error('Draw the study boundary first.');
     if (this.run) void this.cancel(this.run);
     const run: SiteWorkflow = {
       id: crypto.randomUUID(),
@@ -81,14 +103,17 @@ export class SiteWorkflowController {
       expected: workflowFingerprint(spec),
       status: 'running',
       message: 'Connecting…',
-      steps: [
-        { kind: 'research', concept: spec.concept },
-        { kind: 'concepts', concept: spec.concept },
-        ...(['A', 'B', 'C', 'D'] as ConceptId[]).map((concept) => ({
-          kind: 'image' as const,
-          concept,
-        })),
-      ],
+      steps:
+        spec.demoContext === 'presidio'
+          ? [{ kind: 'image', concept: selected }]
+          : [
+              { kind: 'research', concept: spec.concept },
+              { kind: 'concepts', concept: spec.concept },
+              ...(['A', 'B', 'C', 'D'] as ConceptId[]).map((concept) => ({
+                kind: 'image' as const,
+                concept,
+              })),
+            ],
     };
     this.run = run;
     await this.save(run);
@@ -204,9 +229,19 @@ export class SiteWorkflowController {
         return;
       }
       if (!run.provider) run.provider = connection.provider;
+      if (
+        this.deps.current().demoContext &&
+        run.provider &&
+        run.provider !== 'openai'
+      )
+        throw new Error(
+          'Sunburst requires the OpenAI API connection; no fallback was used.',
+        );
       if (!run.provider)
         throw new Error(
-          'Connect Codex or configure the OpenAI API, then Retry.',
+          this.deps.current().demoContext
+            ? 'Configure the OpenAI API for Sunburst at maximum quality, then Retry.'
+            : 'Connect Codex or configure the OpenAI API, then Retry.',
         );
       for (let i = 0; i < run.steps.length; i++) {
         const step = run.steps[i];
@@ -309,7 +344,9 @@ export class SiteWorkflowController {
         );
       if (run.steps.every((s) => s.applied)) {
         run.status = 'completed';
-        run.message = 'Research, four directions, and four images are ready.';
+        run.message = this.deps.current().demoContext
+          ? 'Your concept image is ready. Review it in Concepts before developing in 3D.'
+          : 'Research, four directions, and four images are ready.';
       }
       await this.save(run);
     } catch (error) {

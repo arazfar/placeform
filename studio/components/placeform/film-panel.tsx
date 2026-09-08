@@ -334,18 +334,20 @@ export default function FilmPanel({
             <div className="eyebrow">A CINEMATIC DESIGN REVIEW</div>
             <h2>Architecture, in motion.</h2>
           </div>
-          <button
-            className="outline-button"
-            onClick={() => {
-              setShowPrepared(!showPrepared);
-              setPreview('');
-            }}
-          >
-            <Film size={16} />
-            {showPrepared ? 'Return to storyboard' : 'Prepared walkthrough'}
-          </button>
+          {!spec.demoContext && (
+            <button
+              className="outline-button"
+              onClick={() => {
+                setShowPrepared(!showPrepared);
+                setPreview('');
+              }}
+            >
+              <Film size={16} />
+              {showPrepared ? 'Return to storyboard' : 'Prepared walkthrough'}
+            </button>
+          )}
         </div>
-        {showPrepared ? (
+        {showPrepared && !spec.demoContext ? (
           <div className="film-video">
             <video
               controls
