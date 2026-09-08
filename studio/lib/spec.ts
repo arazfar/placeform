@@ -39,6 +39,7 @@ export type BuildingSpec = {
   hour: number;
   brief: string;
   researchReady: boolean;
+  siteDesignPending?: boolean;
   evidence?: typeof sources;
   directions?: typeof concepts;
   assets: Partial<Record<ConceptId, string>>;
@@ -183,7 +184,7 @@ export function createDemo(): BuildingSpec {
 export function conceptImage(s: BuildingSpec, id: ConceptId) {
   return (
     s.assets[id] ||
-    (s.directions
+    (s.directions || s.siteDesignPending
       ? '/assets/concept-pending.svg'
       : `/assets/concept-${id.toLowerCase()}.png`)
   );
@@ -252,6 +253,8 @@ export function validSpec(v: unknown): v is BuildingSpec {
   if (
     typeof s.brief !== 'string' ||
     typeof s.researchReady !== 'boolean' ||
+    (s.siteDesignPending !== undefined &&
+      typeof s.siteDesignPending !== 'boolean') ||
     typeof s.site?.notes !== 'string' ||
     !s.assets ||
     typeof s.assets !== 'object' ||

@@ -236,7 +236,12 @@ export function applyGeneration(
       throw new Error(
         'Unlock the current features before replacing all four concept palettes.',
       );
-    return { ...s, directions: r.directions!, assets: {} };
+    return {
+      ...s,
+      directions: r.directions!,
+      assets: {},
+      siteDesignPending: false,
+    };
   }
   if (kind === 'image')
     return { ...s, assets: { ...s.assets, [concept]: r.image! } };

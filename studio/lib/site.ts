@@ -98,7 +98,9 @@ export function siteAt(center: [number, number], name: string): Site {
             [center[0] + dx, center[1] + dy],
             [center[0] - dx, center[1] + dy],
             [center[0] - dx, center[1] - dy],
-          ],
+          ].map((coordinate) =>
+            coordinate.map((value) => Number(value.toFixed(9))),
+          ),
         ],
       },
     },

@@ -92,6 +92,8 @@ import { siteArea, siteAt } from '@/lib/site';
 import { drawingSVG, sheets, type SheetId } from '@/lib/drawings';
 import { drawingPDF, reviewPackage, taskPackage } from '@/lib/exports';
 import type { SceneAPI } from './scene';
+import SiteWorkflowStatus, { type SiteWorkflowRequest } from './site-workflow';
+import { freshSiteDesign } from '@/lib/site-workflow';
 import GenerationPanel, { type GenerationRequest } from './generation-panel';
 const Scene = lazy(() => import('./scene'));
 const SiteMap = lazy(() => import('./site-map'));
@@ -197,6 +199,8 @@ export default function Studio() {
   }, []);
   const [generationRequest, setGenerationRequest] =
     useState<GenerationRequest | null>(null);
+  const [siteWorkflowRequest, setSiteWorkflowRequest] =
+    useState<SiteWorkflowRequest | null>(null);
   const projectConcepts = spec.directions || concepts;
   const c = projectConcepts.find((c) => c.id === selected)!,
     activeConcept = projectConcepts.find((c) => c.id === spec.concept)!;
@@ -307,6 +311,7 @@ export default function Studio() {
     const n = { ...next, revision: nextRevision() };
     setPast((p) => [...p, clone(old)].slice(-30));
     setFuture([]);
+    stateRef.current = { ...stateRef.current, spec: n };
     setSpec(n);
     setSaveState('Saving…');
     if (notice) notify(notice);
@@ -672,6 +677,16 @@ export default function Studio() {
           </Tool>
         </div>
         <div className="generation-toolbar">
+          <SiteWorkflowStatus
+            spec={spec}
+            ready={ready}
+            request={siteWorkflowRequest}
+            getSpec={() => stateRef.current.spec}
+            onApply={(next) => {
+              commit(next);
+              setCustomSources(next.evidence || []);
+            }}
+          />
           <button
             className="outline-button"
             onClick={() =>
@@ -859,19 +874,15 @@ export default function Studio() {
                 >
                   <SiteMap
                     spec={spec}
-                    onChange={(site) => {
-                      const moved =
-                        JSON.stringify(site.polygon) !==
-                          JSON.stringify(spec.site.polygon) ||
-                        JSON.stringify(site.center) !==
-                          JSON.stringify(spec.site.center);
-                      commit({
-                        ...spec,
-                        site,
-                        researchReady: moved ? false : spec.researchReady,
-                        brief: moved
-                          ? 'Research the new location before developing a direction.'
-                          : spec.brief,
+                    onEditComplete={(site) => {
+                      const current = stateRef.current.spec;
+                      if (JSON.stringify(site) === JSON.stringify(current.site))
+                        return;
+                      const next = freshSiteDesign(current, site);
+                      commit(next);
+                      setSiteWorkflowRequest({
+                        id: crypto.randomUUID(),
+                        spec: next,
                       });
                     }}
                     onMessage={notify}

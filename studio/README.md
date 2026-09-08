@@ -29,7 +29,7 @@ No long-lived key is sent to browser code or stored in project exports. `/api/st
 1. Explore the four concepts and their local evidence in Place.
 2. Develop A in 3D. Type “Deepen the fins to 1.2 metres.” Click Lock facade and attempt another edit. Undo or redo with the toolbar or Cmd/Ctrl+Z.
 3. Try “Use A’s massing, B’s facade, and C’s landscape” and “Show the entrance at sunset.” Connect voice for natural spoken instructions. Clicked elements and feature locks ground the voice session.
-4. Draw or edit a study boundary; export GeoJSON. Start a new project and click **Research this place**. Review and apply the returned brief and citations inside the app.
+4. Draw or edit a study boundary, then release it. Research, four directions, and four images generate and apply automatically. Search selections also start a fresh design. Track progress, stop, or retry from the persistent activity card; GeoJSON export remains available.
 5. Open the model before exporting the architectural review package. It contains seven vector SVG/PDF sheets, JSON specification, GeoJSON, source-backed brief, metre-scale GLB, and four actual model presentation views.
 6. In Film, watch the bundled original walkthrough or prepare and record a current-revision shot. The four shots total 27 seconds. Verify live AIand price, review frames/prompt, then generate. Review completed video for architectural drift against the retained original clip.
 
@@ -37,13 +37,18 @@ No long-lived key is sent to browser code or stored in project exports. `/api/st
 
 Open **Generate & review** from any stage. Local development uses the signed-in Codex CLI by default, with `codex exec` JSON events, isolated job directories, restricted tools, and the subscription's available allowance. Research browses primary sources; concept generation returns four named directions and palettes; image generation/editing uses the subscription image tool. No API keys are inherited by the Codex subprocess. The local adapter accepts localhost, same-origin requests with a per-server token.
 
-1. Select the geofence and click **Research this place**. Review facts, proposed responses, source links and uncertainties; apply the brief.
-2. Select **Create four directions** in Generate. Review and apply the four local palettes and descriptions. Unlock features before replacing a whole concept set.
-3. Click **Generate missing images** for the set, or generate/refine one direction. Choose an existing concept image, the current actual 3D model view, or a fresh visualization as the reference. Apply each reviewed result to Concepts.
-4. For a natural typed request outside the immediate command parser, Generate opens **Propose model changes**. The proposal is validated atomically against dimensions and feature locks before applying. Supported edits update the same model and drawings; images remain clearly labeled design intent.
-5. Close the panel while work runs. The activity button returns to job progress. Browser reload recovers jobs and polls their providers. Completed results, token usage, cancellation and explicit retries stay in the project job list. Changes to the geofence or relevant design state prevent stale results from overwriting the current project. Applying a result creates an undoable design version.
+Finishing a map edit starts a fresh, undoable design for that boundary. Existing feature locks, research, directions, and images are cleared; building dimensions and the active concept remain. No prepared demo images are substituted while generation is pending.
 
-The hosted app cannot run your computer's Codex session. It uses the same UI with the **paid OpenAI API** option: GPT-5 mini and web search for research/text proposals, GPT-5 with GPT Image 2 for images. Responses run in background mode and are polled by ID; browser jobs and results use IndexedDB. Price information and request bounds appear before starting; token usage appears afterward. Paid fallback is selected explicitly, never silently retried. Voice and AIand video continue to use their separate APIs.
+1. Research runs first and applies its brief and citations automatically.
+2. Four locally grounded directions are created from that research and applied to the model and drawings.
+3. Four fresh images run concurrently and appear in Concepts as they finish. No start or apply approvals are required for this automatic workflow.
+4. The persistent activity card shows progress and the provider. Codex is preferred; when unavailable, the configured paid OpenAI API is used automatically. No available connection produces an actionable Retry state. Film, downloads, and exports stay separate.
+5. A new map edit supersedes and requests cancellation of old work. Relevant manual edits, undo, or switching projects pause automatic application; camera changes are allowed. Successful outputs remain available after a partial failure, and Retry submits only missing outputs. Unknown submission outcomes require provider-history reconciliation before starting another design.
+6. Browser reload recovers saved workflow stages and known provider jobs without resubmitting them. Workflow checkpoints and application receipts are stored in IndexedDB alongside standalone generation jobs. Storage is local to this browser; keep project exports for recovery.
+
+**Generate & review** remains available for optional research extensions, individual image refinements, and model proposals. These standalone jobs retain their explicit review/apply controls and existing saved-job compatibility. Model proposals remain bounded by supported geometry and feature locks.
+
+The hosted app cannot run your computer's Codex session. It uses the same UI with the **paid OpenAI API** option: GPT-5 mini and web search for research/text proposals, GPT-5 with GPT Image 2 for images. Responses run in background mode and are polled by ID; browser jobs and results use IndexedDB. Price information and request bounds appear before starting; token usage appears afterward. Automatic site generation uses the paid API when Codex is unavailable and displays that choice in its progress card. A submitted run never silently switches providers or retries an unknown paid submission. Voice and AIand video continue to use their separate APIs.
 
 Local Codex jobs are saved under `~/.cache/placeform/<workspace-hash>/`. Up to four jobs run concurrently, with a 15-minute timeout. Stopping/restarting the local server interrupts active subscription jobs; their records identify the interruption and offer retry. Provider background responses are subject to provider retention; browser storage is local to the current browser and origin. Keep a project export for portable backups.
 

@@ -41,3 +41,10 @@ This is a local-browser-persisted, owner-private architectural prototype. Large 
 - All generated QA projects/results live in the QA browser and private local job storage, not the prepared demo assets or committed source. Real credentials remain excluded from Git and browser bundles.
 
 - Live voice verification: opened a real `gpt-realtime-2.1` WebRTC session with the server-held key. Sent prerecorded test speech as PCM audio over the Realtime data channel; received the editable transcript “Deepen the facade fins to 1.2 meters,” a real `update_design` function call, a model change from 0.85m to 1.2m at revision 9, and spoken confirmation. Stopped the paid session afterward. This verifies speech interpretation, function routing and feedback; physical microphone capture and acoustic quality were not tested. The temporary speech file and browser overrides were removed.
+
+## Automatic site design workflow
+
+- Typecheck, 27 Node tests, targeted Oxlint checks, and production build pass. Workflow coverage includes stage dependencies, concurrent images, automatic application, stale runs, cancellation during submission, reload receipts, undo, project changes, missing connections, uncertain submissions, and retrying only failed outputs.
+- Browser QA with controlled provider responses: a coordinate drag paused for 1.8 seconds submitted nothing until release, then research, directions, and four images completed without an approval dialog. Reload retained all six results without new submissions. Midpoint insertion/drag likewise waited for release and produced exactly one six-output workflow; map panning submitted nothing.
+- Browser QA also verified coordinate-search selection automatically uses the paid API fallback when Codex is unavailable, displays the paid provider, and applies all six outputs without approval. Generated search boundaries use the map editor’s supported coordinate precision and remain editable.
+- Progress appears in the generation toolbar so it does not cover map handles. Film and export actions remain separate. The browser check used mocked generation results; no live provider generation or billing was exercised for this change.

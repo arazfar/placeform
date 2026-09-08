@@ -17,6 +17,11 @@ import {
 } from '@/lib/generation';
 import { importedImage } from '@/lib/persistence';
 import { loadMedia, saveMedia } from '@/lib/media-store';
+import {
+  generationJSON as json,
+  generationCall,
+  type Connection,
+} from '@/lib/generation-client';
 
 export type GenerationRequest = {
   kind: GenerationKind;
@@ -32,19 +37,12 @@ type SavedJob = GenerationJob & {
   created: string;
   applied?: boolean;
 };
-type Connection = { available: boolean; message: string; nonce?: string };
 const labels: Record<GenerationKind, string> = {
   research: 'Research this place',
   concepts: 'Create four directions',
   image: 'Generate a concept image',
   design: 'Propose model changes',
 };
-async function json<T = GenerationJob>(response: Response): Promise<T> {
-  const data = (await response.json()) as { error?: string };
-  if (!response.ok)
-    throw new Error(data.error || 'The generation service is unavailable.');
-  return data as T;
-}
 export default function GenerationPanel({
   spec,
   selected,
@@ -222,7 +220,7 @@ export default function GenerationPanel({
       if (target === 'image' && reference === 'concept') {
         const src =
           current.assets[concept] ||
-          (!current.directions
+          (!current.directions && !current.siteDesignPending
             ? `/assets/concept-${concept.toLowerCase()}.png`
             : undefined);
         if (src) {
@@ -239,17 +237,13 @@ export default function GenerationPanel({
         prompt: customPrompt,
         reference: image,
       };
-      const result = (await fetch(
-        provider === 'codex' ? '/api/codex' : '/api/generation',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-placeform-token': connection.nonce || '',
-          },
-          body: JSON.stringify(input),
-        },
-      ).then(json)) as GenerationJob;
+      const result = await generationCall(
+        provider,
+        connection.nonce || '',
+        'POST',
+        undefined,
+        input,
+      );
       const saved: SavedJob = {
         ...result,
         projectId: current.id,

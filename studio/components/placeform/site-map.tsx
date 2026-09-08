@@ -31,23 +31,22 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 maplibregl.setWorkerUrl(mapWorkerUrl);
 export default function SiteMap({
   spec,
-  onChange,
+  onEditComplete,
   onMessage,
 }: {
   spec: BuildingSpec;
-  onChange: (s: Site) => void;
+  onEditComplete: (s: Site) => void;
   onMessage: (s: string) => void;
 }) {
   const el = useRef<HTMLDivElement>(null),
     map = useRef<maplibregl.Map | null>(null),
     draw = useRef<TerraDraw | null>(null);
   const boundaryKey = useRef(JSON.stringify(spec.site.polygon.geometry)),
-    syncing = useRef(false),
-    debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    syncing = useRef(false);
   const current = useRef(spec),
-    change = useRef(onChange);
+    change = useRef(onEditComplete);
   current.current = spec;
-  change.current = onChange;
+  change.current = onEditComplete;
   const [mode, setMode] = useState('select'),
     [q, setQ] = useState(''),
     [results, setResults] = useState<
@@ -59,6 +58,10 @@ export default function SiteMap({
   useEffect(() => {
     if (!el.current) return;
     let stopped = false;
+    const events = new AbortController();
+    let held = false,
+      pending = false;
+    let finishTimer: ReturnType<typeof setTimeout> | undefined;
     const m = new maplibregl.Map({
       container: el.current,
       center: spec.site.center,
@@ -172,15 +175,45 @@ export default function SiteMap({
           }
         }
       };
-      d.on('finish', () => {
+      const finish = () => {
+        if (stopped || syncing.current) return;
+        pending = false;
         sync();
-        d.setMode('select');
-        setMode('select');
-      });
-      d.on('change', () => {
+        if (d.getMode() === 'polygon') {
+          d.setMode('select');
+          setMode('select');
+        }
+      };
+      // Midpoint insertion emits finish at drag START. Wait for pointer release,
+      // including releases outside the map, and let Terra Draw finish its event first.
+      m.getContainer().addEventListener(
+        'pointerdown',
+        () => {
+          held = true;
+        },
+        { capture: true, signal: events.signal },
+      );
+      window.addEventListener(
+        'pointerup',
+        () => {
+          held = false;
+          if (pending) finishTimer = setTimeout(finish, 0);
+        },
+        { signal: events.signal },
+      );
+      window.addEventListener(
+        'pointercancel',
+        () => {
+          held = false;
+          pending = false;
+        },
+        { signal: events.signal },
+      );
+      d.on('finish', () => {
         if (syncing.current) return;
-        clearTimeout(debounce.current);
-        debounce.current = setTimeout(sync, 450);
+        pending = true;
+        clearTimeout(finishTimer);
+        if (!held) finishTimer = setTimeout(finish, 0);
       });
       m.addSource('building', {
         type: 'geojson',
@@ -200,7 +233,8 @@ export default function SiteMap({
     });
     return () => {
       stopped = true;
-      clearTimeout(debounce.current);
+      events.abort();
+      clearTimeout(finishTimer);
       resize.disconnect();
       draw.current?.stop();
       m.remove();
@@ -217,7 +251,6 @@ export default function SiteMap({
     const key = JSON.stringify(spec.site.polygon.geometry);
     if (draw.current && key !== boundaryKey.current) {
       syncing.current = true;
-      clearTimeout(debounce.current);
       draw.current.clear();
       draw.current.addFeatures([
         {
@@ -266,7 +299,7 @@ export default function SiteMap({
   }
   function choose(r: { display_name: string; lat: string; lon: string }) {
     const s = siteAt([Number(r.lon), Number(r.lat)], r.display_name);
-    onChange(s);
+    onEditComplete(s);
     map.current?.flyTo({ center: s.center, zoom: 16.4 });
     setResults([]);
     setQ('');

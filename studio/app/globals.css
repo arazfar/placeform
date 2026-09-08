@@ -2900,3 +2900,24 @@ svg {
 .generation-job>output {display:block;margin:10px 0}
 .generation-toolbar {width:100%;box-sizing:border-box}
 .concept-tile small {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:3em}
+
+.generation-toolbar { align-items: center; gap: 16px; }
+.site-workflow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #ccd3c2;
+  border-radius: 8px;
+  background: #f6f7f1;
+  color: #354a3a;
+}
+.site-workflow output { display: grid; gap: 4px; flex: 1; }
+.site-workflow strong, .site-workflow span { font-size: 14px; }
+.site-workflow small { font-size: 12px; }
+.site-workflow button { border: 1px solid #ccd3c2; border-radius: 6px; padding: 7px 12px; font-size: 14px; background: white; }
+@media (max-width: 700px) {
+  .generation-toolbar { flex-wrap: wrap; }
+  .site-workflow { flex-basis: 100%; flex-wrap: wrap; }
+}
