@@ -1,7 +1,14 @@
 'use client';
 // Imperative browser engines and persisted external sessions are intentionally outside React Compiler.
 // Native images support local/blob imports. Silent model films have no spoken audio to caption.
-import { useEffect, useMemo, useRef, Component, type ReactNode } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  Component,
+  type ReactNode,
+} from 'react';
 import {
   Canvas,
   useThree,
@@ -12,7 +19,8 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { buildArchitecture, disposeArchitecture } from '@/lib/architecture';
+import { disposeArchitecture } from '@/lib/architecture';
+import { buildDemoModel } from '@/lib/demo-models';
 import type { BuildingSpec, Feature, View } from '@/lib/spec';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 export type Shot = {
@@ -39,7 +47,7 @@ export function filmShots(s: BuildingSpec): Shot[] {
     {
       id: 'walkaround',
       name: 'At walking pace',
-      description: 'Follow the facade rhythm toward the copper entrance.',
+      description: 'Follow the facade rhythm toward the glazed entrance.',
       seconds: 8,
       from: [-34, 2.2, z + 13],
       to: [24, 2.2, z + 13],
@@ -48,7 +56,7 @@ export function filmShots(s: BuildingSpec): Shot[] {
     {
       id: 'detail',
       name: 'Material & shadow',
-      description: 'Trace the depth of a brick pier and recessed screen.',
+      description: 'Trace the roof edge, glazing and material detail.',
       seconds: 5,
       from: [18, 9, z + 9],
       to: [25, 10, z + 6],
@@ -94,9 +102,9 @@ export function cameraPose(
     W = s.width,
     H = s.height;
   const positions: Record<View, number[]> = {
-    perspective: [L * 0.83, H * 1.35, W * 1.7],
+    perspective: [L * 0.96, 88, W * 1.65],
     entrance: [24, 2.2, W / 2 + 21],
-    aerial: [L * 0.7, Math.max(L, W) * 0.86, W * 1.12],
+    aerial: [L * 0.95, Math.max(L, W) * 1.18, W * 1.5],
     north: [0, H * 0.7, -W * 2.4],
     south: [0, H * 0.7, W * 2.4],
     east: [L * 1.55, H * 0.7, 0],
@@ -141,23 +149,7 @@ function Model({
 }) {
   const { gl, scene, camera } = useThree();
   const controls = useRef<OrbitControlsImpl>(null);
-  const group = useMemo(
-    () => buildArchitecture(spec),
-    [
-      spec.length,
-      spec.width,
-      spec.height,
-      spec.finDepth,
-      spec.finSpacing,
-      spec.canopyDepth,
-      spec.material,
-      spec.directions,
-      spec.roof,
-      spec.landscape,
-      spec.concept,
-      spec.hour,
-    ],
-  );
+  const group = useMemo(() => buildDemoModel(spec.concept), [spec.concept]);
   const animation = useRef<{
       shot: Shot;
       start: number;
@@ -519,7 +511,7 @@ class SceneError extends Component<
     return this.state.error ? (
       <div className="scene-error">
         The 3D view could not start. Enable WebGL, then reload. Concepts and
-        schematic drawings remain available.
+        image-based video remain available.
       </div>
     ) : (
       this.props.children
@@ -537,6 +529,24 @@ export default function Scene({
   onReady: (api: SceneAPI) => void;
   walk?: boolean;
 }) {
+  const [webgl, setWebgl] = useState<boolean | null>(null);
+  useEffect(() => {
+    try {
+      const probe = document.createElement('canvas').getContext('webgl2');
+      setWebgl(!!probe);
+      probe?.getExtension('WEBGL_lose_context')?.loseContext();
+    } catch {
+      setWebgl(false);
+    }
+  }, []);
+  if (webgl !== true)
+    return (
+      <div className="scene-error">
+        {webgl === null
+          ? 'Opening the 3D view…'
+          : 'WebGL is unavailable. Concepts and image-based video remain available.'}
+      </div>
+    );
   return (
     <SceneError>
       <Canvas
@@ -556,8 +566,8 @@ export default function Scene({
         }}
         fallback={
           <div className="scene-error">
-            WebGL is unavailable. You can still explore concepts and export
-            drawings.
+            WebGL is unavailable. You can still explore concepts and generate
+            video from the reference image.
           </div>
         }
       >

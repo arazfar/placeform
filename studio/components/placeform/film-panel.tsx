@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { filmShots, type SceneAPI } from './scene';
 import { type BuildingSpec } from '@/lib/spec';
+import { demoConcept } from '@/lib/demo-catalog';
 import { download } from '@/lib/download';
 import { saveMedia, loadMedia } from '@/lib/media-store';
 import { videoReadiness, type VideoCatalog } from '@/lib/video-readiness';
@@ -55,11 +56,13 @@ export default function FilmPanel({
     [jobs, setJobs] = useState<VideoJob[]>([]),
     [hydrated, setHydrated] = useState(false),
     [preview, setPreview] = useState(''),
-    [firstURL, setFirstURL] = useState(''),
+    [firstURL, setFirstURL] = useState(demoConcept(spec.concept).image),
+    [referenceSource, setReferenceSource] = useState<'concept' | 'model'>(
+      'concept',
+    ),
     [lastURL, setLastURL] = useState(''),
     [prompt, setPrompt] = useState(''),
     [seconds, setSeconds] = useState(shots[0].seconds),
-    [showPrepared, setShowPrepared] = useState(false),
     [pollError, setPollError] = useState('');
   const frames = useRef<{
     first: Blob;
@@ -105,20 +108,25 @@ export default function FilmPanel({
   }, [jobs, hydrated]);
   useEffect(() => {
     setPrompt(
-      `${shot.description} Preserve the building silhouette, proportions, material colors, facade bay count, canopy, roof equipment screen and landscape from the supplied model renders. A slow architectural camera move; no new geometry, no text, no dramatic weather. Schematic exterior of ${spec.name}.`,
+      `${shot.description} Preserve the building silhouette, proportions, material colors, facade bay count, canopy, roof equipment screen and landscape from the supplied concept reference. A slow architectural camera move; no new geometry, no text, no dramatic weather. Exterior of ${demoConcept(spec.concept).name}: ${demoConcept(spec.concept).description}.`,
     );
     setSeconds(shot.seconds);
     frames.current = null;
-    setFirstURL('');
+    setFirstURL(demoConcept(spec.concept).image);
+    setReferenceSource('concept');
     setLastURL('');
-    setShowPrepared(false);
     setPreview('');
-    loadMedia(`${spec.id}:${spec.revision}:${shot.id}`)
+    let stale = false;
+    loadMedia(`${spec.id}:${spec.concept}:${spec.revision}:${shot.id}`)
       .then((blob) => {
-        if (blob) setPreview(URL.createObjectURL(blob));
+        if (blob && !stale) setPreview(URL.createObjectURL(blob));
       })
       .catch(() => {});
+    return () => {
+      stale = true;
+    };
   }, [
+    spec.concept,
     selected,
     spec.id,
     spec.revision,
@@ -187,15 +195,18 @@ export default function FilmPanel({
     if (!api) throw new Error('Open the model and wait for it to load.');
     const f = await api.frames(shot);
     frames.current = { ...f, revision: spec.revision, shot: shot.id };
+    setReferenceSource('model');
     setFirstURL(URL.createObjectURL(f.first));
     setLastURL(URL.createObjectURL(f.last));
   }
   async function record() {
     if (!api) throw new Error('The model is loading.');
     const clip = await api.record({ ...shot, seconds }, setProgress);
-    await saveMedia(`${spec.id}:${spec.revision}:${shot.id}`, clip);
+    await saveMedia(
+      `${spec.id}:${spec.concept}:${spec.revision}:${shot.id}`,
+      clip,
+    );
     setPreview(URL.createObjectURL(clip));
-    setShowPrepared(false);
     onMessage(
       'Original model clip saved in this browser. It is ready to download.',
     );
@@ -204,17 +215,25 @@ export default function FilmPanel({
     if (checkingConnection || readinessError)
       throw new Error(readinessError || 'Wait for the video connection check.');
     if (!price) throw new Error('Verify the live model and price first.');
-    if (
-      !frames.current ||
-      frames.current.revision !== spec.revision ||
-      frames.current.shot !== shot.id
-    )
-      throw new Error(
-        'Prepare reference frames for the current revision first.',
-      );
-    const f = frames.current;
+    let references: Blob[];
+    if (referenceSource === 'concept') {
+      const response = await fetch(demoConcept(spec.concept).image);
+      if (!response.ok)
+        throw new Error('The concept reference could not be loaded.');
+      references = [await response.blob()];
+    } else {
+      if (
+        !frames.current ||
+        frames.current.revision !== spec.revision ||
+        frames.current.shot !== shot.id
+      )
+        throw new Error(
+          'Prepare reference frames for the current model first.',
+        );
+      references = [frames.current.first, frames.current.last];
+    }
     const fileIds: string[] = [];
-    for (const [i, blob] of [f.first, f.last].entries()) {
+    for (const [i, blob] of references.entries()) {
       const form = new FormData();
       form.set('file', blob, `r${spec.revision}-${shot.id}-${i}.png`);
       const r = await fetch('/api/video', { method: 'POST', body: form });
@@ -278,11 +297,18 @@ export default function FilmPanel({
     }
   }
   async function exportFrames() {
-    if (!frames.current) await prepare();
-    const f = frames.current!;
     const zip = new JSZip();
-    zip.file('first-frame.png', f.first);
-    zip.file('last-frame.png', f.last);
+    if (referenceSource === 'concept') {
+      const response = await fetch(demoConcept(spec.concept).image);
+      if (!response.ok)
+        throw new Error('The concept reference could not be loaded.');
+      zip.file('first-frame.png', await response.blob());
+    } else {
+      if (!frames.current) await prepare();
+      const f = frames.current!;
+      zip.file('first-frame.png', f.first);
+      zip.file('last-frame.png', f.last);
+    }
     zip.file(
       'shot.json',
       JSON.stringify(
@@ -339,32 +365,8 @@ export default function FilmPanel({
             <div className="eyebrow">A CINEMATIC DESIGN REVIEW</div>
             <h2>Architecture, in motion.</h2>
           </div>
-          {!spec.demoContext && (
-            <button
-              className="outline-button"
-              onClick={() => {
-                setShowPrepared(!showPrepared);
-                setPreview('');
-              }}
-            >
-              <Film size={16} />
-              {showPrepared ? 'Return to storyboard' : 'Prepared walkthrough'}
-            </button>
-          )}
         </div>
-        {showPrepared && !spec.demoContext ? (
-          <div className="film-video">
-            <video
-              controls
-              src="/assets/model-walkthrough.mp4"
-              poster="/assets/model-perspective.png"
-            />
-            <p>
-              Original Three.js walkthrough · prepared Portland study, revision
-              1 · no AI video processing.
-            </p>
-          </div>
-        ) : preview ? (
+        {preview ? (
           <div className="film-video">
             <video controls src={preview} />
             <button
@@ -385,13 +387,26 @@ export default function FilmPanel({
             {firstURL ? (
               <>
                 <figure>
-                  <img src={firstURL} alt="Actual model first frame" />
-                  <figcaption>01 · FIRST FRAME</figcaption>
+                  <img
+                    src={firstURL}
+                    alt={
+                      referenceSource === 'concept'
+                        ? `${demoConcept(spec.concept).name} concept reference`
+                        : 'Actual model first frame'
+                    }
+                  />
+                  <figcaption>
+                    {referenceSource === 'concept'
+                      ? 'CONCEPT REFERENCE'
+                      : '01 · FIRST FRAME'}
+                  </figcaption>
                 </figure>
-                <figure>
-                  <img src={lastURL} alt="Actual model last frame" />
-                  <figcaption>02 · LAST FRAME</figcaption>
-                </figure>
+                {lastURL && (
+                  <figure>
+                    <img src={lastURL} alt="Actual model last frame" />
+                    <figcaption>02 · LAST FRAME</figcaption>
+                  </figure>
+                )}
               </>
             ) : (
               <div className="storyboard-empty">
@@ -442,6 +457,28 @@ export default function FilmPanel({
         <div className="film-actions">
           <button
             className="outline-button"
+            disabled={!!busy}
+            onClick={() => {
+              frames.current = null;
+              setReferenceSource('concept');
+              setFirstURL(demoConcept(spec.concept).image);
+              setLastURL('');
+              setPreview('');
+            }}
+          >
+            Use concept image
+          </button>
+          <button
+            className="outline-button"
+            disabled={!api || !!busy}
+            onClick={() =>
+              guarded('Rendering model reference frames…', prepare)
+            }
+          >
+            Use model frames
+          </button>
+          <button
+            className="outline-button"
             disabled={!api || !!busy}
             onClick={() => {
               api?.play({ ...shot, seconds });
@@ -459,7 +496,7 @@ export default function FilmPanel({
           </button>
           <button
             className="outline-button"
-            disabled={!api || !!busy}
+            disabled={!!busy}
             onClick={() => guarded('Exporting the video task…', exportFrames)}
           >
             <Download size={15} /> Export video task
@@ -570,7 +607,7 @@ export default function FilmPanel({
                         ),
                       );
                       onMessage(
-                        'Failed job settings loaded. Prepare fresh frames and review the current price to retry.',
+                        'Failed job settings loaded. Review the reference and current price to retry.',
                       );
                     }}
                   >
@@ -600,8 +637,8 @@ export default function FilmPanel({
         </div>
         <h3>Bring the study to life.</h3>
         <p>
-          First and last frames from your actual model guide the camera and hold
-          the architecture together.
+          The selected concept image guides the architecture. You can also use
+          first and last frames from the live model.
         </p>
         <label className="field-label">
           SHOT PROMPT
@@ -681,7 +718,7 @@ export default function FilmPanel({
         </button>
         {!firstURL && !checkingConnection && !readinessError && (
           <p className="fineprint">
-            Prepare model frames, then review the prompt and click Generate.
+            Review the concept reference and prompt, then click Generate.
           </p>
         )}
         <p className="fineprint">

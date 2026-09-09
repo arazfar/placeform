@@ -3218,3 +3218,13 @@ svg {
     gap: 8px;
   }
 }
+
+/* A single concept reference fills the storyboard; paired model frames share it. */
+.film-frames:has(> figure:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.film-frames:has(> figure:only-child) img {
+  width: 100%;
+  max-height: 560px;
+  object-fit: contain;
+}

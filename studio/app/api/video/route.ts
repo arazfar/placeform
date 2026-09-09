@@ -1,3 +1,4 @@
+import { videoReferences } from '@/lib/video-reference';
 import {
   secret,
   failure,
@@ -126,12 +127,11 @@ export async function POST(req: Request) {
       return failure(
         'Invalid video request. Use a prompt, 4–15 seconds, reference frames, and a reviewed quote.',
       );
-    if (
-      ![firstFrame, lastFrame].every(
-        (v) => typeof v === 'string' && /^file[-_][\w-]{1,180}$/.test(v),
-      )
-    )
-      return failure('Upload both model reference frames before submitting.');
+    const references = videoReferences(firstFrame, lastFrame);
+    if (!references)
+      return failure(
+        'Upload a concept image or valid model reference frames before submitting.',
+      );
     const catalogRes = await request('/v1/videos/models');
     if (!catalogRes.ok)
       return failure(await providerError(catalogRes), catalogRes.status);
@@ -161,10 +161,7 @@ export async function POST(req: Request) {
         prompt,
         seconds,
         aspect_ratio: '16:9',
-        image_reference: [
-          { file_id: firstFrame, role: 'first_frame' },
-          { file_id: lastFrame, role: 'last_frame' },
-        ],
+        image_reference: references,
       }),
     });
     return pass(result);

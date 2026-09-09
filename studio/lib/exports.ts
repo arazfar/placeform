@@ -1,3 +1,4 @@
+import { demoConcept } from './demo-catalog';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import 'svg2pdf.js';
@@ -40,13 +41,10 @@ export async function reviewPackage(
   }
   zip.file('building-specification.json', JSON.stringify(spec, null, 2));
   zip.file('site-boundary.geojson', JSON.stringify(spec.site.polygon, null, 2));
-  for (const sheet of sheets)
-    zip.file(
-      `drawings/${sheet.id}-${sheet.kind}.svg`,
-      drawingSVG(spec, sheet.id),
-    );
-  onProgress('Preparing the dimensioned drawing set…');
-  zip.file('drawings/schematic-review.pdf', await drawingPDF(spec));
+  const reference = await fetch(demoConcept(spec.concept).image);
+  if (!reference.ok)
+    throw new Error('The concept reference could not be loaded.');
+  zip.file(`concepts/${spec.concept}-reference.png`, await reference.blob());
   const projectSources = spec.researchReady
     ? spec.evidence || (spec.id === 'central-eastside' ? sources : [])
     : [];
@@ -81,7 +79,7 @@ export async function reviewPackage(
   }
   zip.file(
     'README.txt',
-    `PLACEFORM — ${spec.name}\nRevision ${spec.revision}\nSCHEMATIC DESIGN — NOT FOR CONSTRUCTION\n\nThe SVG and PDF drawings, GLB and presentation views derive from the same versioned building specification. Print PDF at 100% on A3. Dimensions in metres.\n\n${spec.site.notes}\n\nNo site entitlement, noise, cooling-water, energy, carbon or flood-performance claims are established. Concealed construction and equipment are schematic.\n\n${scene ? 'Includes actual model renders and geometry.' : 'Model was unavailable; this package includes specification and drawings only.'}\n`,
+    `PLACEFORM — ${spec.name}\nRevision ${spec.revision}\nSCHEMATIC DESIGN — NOT FOR CONSTRUCTION\n\nThe reference image and procedural GLB depict the selected fixed concept. Geometry and dimensions are approximate; hidden sides are inferred. Presentation views are rendered from that GLB.\n\n${spec.site.notes}\n\nNo site entitlement, noise, cooling-water, energy, carbon or flood-performance claims are established. Concealed construction and equipment are schematic.\n\n${scene ? 'Includes actual model renders and geometry.' : 'Model was unavailable; this package includes the reference and specification only.'}\n`,
   );
   onProgress('Packing the review package…');
   download(

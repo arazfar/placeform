@@ -1,10 +1,11 @@
 'use client';
+import {
+  demoConcepts,
+  fixedDemoSpec,
+  DEMO_STORAGE_KEY,
+} from '@/lib/demo-catalog';
 // Imperative browser engines and persisted external sessions are intentionally outside React Compiler.
 // Native images support local/blob imports. Silent model films have no spoken audio to caption.
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from '@/components/ui/native-select';
 import {
   useState,
   useEffect,
@@ -22,14 +23,10 @@ import {
   Film,
   Mic,
   MicOff,
-  Plus,
   Check,
   ArrowRight,
   Undo2,
   Redo2,
-  LockKeyhole,
-  LockKeyholeOpen,
-  SlidersHorizontal,
   Download,
   Upload,
   ExternalLink,
@@ -64,14 +61,10 @@ import {
   concepts,
   createDemo,
   canOpenModel,
-  canReviewImage,
-  reviewConcept,
   clone,
-  applyConcept,
   conceptImage,
   featureLabels,
   validSpec,
-  storageKey,
   type BuildingSpec,
   type ConceptId,
   type Feature,
@@ -95,11 +88,10 @@ import { siteArea, siteAt } from '@/lib/site';
 import { drawingSVG, sheets, type SheetId } from '@/lib/drawings';
 import { drawingPDF, reviewPackage, taskPackage } from '@/lib/exports';
 import type { SceneAPI } from './scene';
-import SiteWorkflowStatus, { type SiteWorkflowRequest } from './site-workflow';
 import { moodBoardUrl, withinPresidio } from '@/lib/presidio';
 import { loadMedia, saveMedia } from '@/lib/media-store';
 import { freshSiteDesign } from '@/lib/site-workflow';
-import GenerationPanel, { type GenerationRequest } from './generation-panel';
+import type { GenerationRequest } from './generation-panel';
 import ContextGallery from './context-gallery';
 const Scene = lazy(() => import('./scene'));
 const SiteMap = lazy(() => import('./site-map'));
@@ -108,7 +100,6 @@ const stages = [
   { id: 'place', label: 'Place', icon: MapPin },
   { id: 'concepts', label: 'Concepts', icon: Layers },
   { id: 'model', label: '3D model', icon: Box },
-  { id: 'drawings', label: 'Drawings', icon: Compass },
   { id: 'film', label: 'Film', icon: Film },
 ];
 const viewNames: Record<View, string> = {
@@ -153,10 +144,12 @@ function Tool({
   );
 }
 export default function Studio() {
-  const [spec, setSpec] = useState<BuildingSpec>(createDemo),
+  const [spec, setSpec] = useState<BuildingSpec>(() =>
+      fixedDemoSpec(createDemo()),
+    ),
     [past, setPast] = useState<BuildingSpec[]>([]),
     [future, setFuture] = useState<BuildingSpec[]>([]),
-    [tab, setTab] = useState('place'),
+    [tab, setTab] = useState('concepts'),
     [selected, setSelected] = useState<ConceptId>('A'),
     [element, setElement] = useState<Feature>(),
     [ready, setReady] = useState(false),
@@ -204,38 +197,16 @@ export default function Studio() {
     setSceneAPI(api);
     if (import.meta.env.DEV) window.__PLACEFORM_SCENE = api;
   }, []);
-  const [generationRequest, setGenerationRequest] =
-    useState<GenerationRequest | null>(null);
-  const [siteWorkflowRequest, setSiteWorkflowRequest] =
-    useState<SiteWorkflowRequest | null>(null);
-  const projectConcepts = spec.directions || concepts;
+  const projectConcepts = demoConcepts;
   const c = projectConcepts.find((c) => c.id === selected)!,
     activeConcept = projectConcepts.find((c) => c.id === spec.concept)!;
-  function openGeneration(kind: GenerationRequest['kind'], prompt = '') {
-    if (
-      stateRef.current.spec.demoContext &&
-      ['research', 'concepts'].includes(kind)
-    ) {
-      setTab('place');
-      notify('Prepared Presidio research and directions are ready below.');
-      return;
-    }
-    setDialog(null);
-    setGenerationRequest({ kind, prompt, key: Date.now() });
+  function openGeneration(_kind: GenerationRequest['kind'], _prompt = '') {
+    notify(
+      'Four prepared concepts are ready. Select a direction to explore its model.',
+    );
   }
   function developSelected() {
-    if (spec.demoContext) {
-      if (!spec.boundaryConfirmed) {
-        setTab('place');
-        notify('Draw the study boundary first.');
-        return;
-      }
-      if (!canReviewImage(spec, selected)) {
-        openGeneration('image');
-        return;
-      }
-      commit(reviewConcept(spec, selected));
-    } else commit(applyConcept(spec, selected));
+    commit(fixedDemoSpec(spec, selected));
     setTab('model');
   }
   function notify(text: string) {
@@ -246,9 +217,9 @@ export default function Studio() {
   useEffect(() => {
     void (async () => {
       try {
-        const stored = await loadMedia('projects-v2');
+        const stored = await loadMedia(DEMO_STORAGE_KEY);
         const raw = decodeProjects(
-          stored ? await stored.text() : localStorage.getItem(storageKey),
+          stored ? await stored.text() : localStorage.getItem(DEMO_STORAGE_KEY),
         );
         const projects = Array.isArray(raw.projects)
           ? raw.projects.filter((p: SavedState) => validSpec(p.project))
@@ -258,7 +229,7 @@ export default function Studio() {
           projects.find((p: SavedState) => p.project.id === raw.active) ||
           projects[0];
         if (active) {
-          setSpec(active.project);
+          setSpec(fixedDemoSpec(active.project));
           setCustomSources(active.project.evidence || []);
           setSelected(active.project.reviewedConcept || active.project.concept);
           setPast((active.past || []).filter(validSpec).slice(-30));
@@ -297,9 +268,11 @@ export default function Studio() {
         .catch(() => {})
         .then(async () => {
           try {
-            const stored = await loadMedia('projects-v2');
+            const stored = await loadMedia(DEMO_STORAGE_KEY);
             const raw = decodeProjects(
-              stored ? await stored.text() : localStorage.getItem(storageKey),
+              stored
+                ? await stored.text()
+                : localStorage.getItem(DEMO_STORAGE_KEY),
             );
             const other = (raw.projects || []).filter(
               (p: SavedState) =>
@@ -313,7 +286,7 @@ export default function Studio() {
             };
             const projects = [entry, ...other].slice(0, 12);
             await saveMedia(
-              'projects-v2',
+              DEMO_STORAGE_KEY,
               new Blob([encodeProjects({ active: spec.id, projects })], {
                 type: 'application/json',
               }),
@@ -352,7 +325,12 @@ export default function Studio() {
     );
   }
   function commit(next: BuildingSpec, notice?: string) {
+    next = fixedDemoSpec(next);
     const old = stateRef.current.spec;
+    if (old.concept !== next.concept) {
+      setSceneAPI(undefined);
+      setElement(undefined);
+    }
     if (
       JSON.stringify({ ...old, revision: 0 }) ===
       JSON.stringify({ ...next, revision: 0 })
@@ -362,7 +340,7 @@ export default function Studio() {
     setPast((p) => [...p, clone(old)].slice(-30));
     setFuture([]);
     stateRef.current = { ...stateRef.current, spec: n };
-    setSpec(n);
+    setSpec(fixedDemoSpec(n));
     setSaveState('Saving…');
     if (notice) notify(notice);
   }
@@ -391,6 +369,15 @@ export default function Studio() {
     }
   }
   function dispatch(a: DesignAction) {
+    if (
+      !['view', 'undo', 'redo'].includes(a.type) &&
+      !(a.type === 'set' && a.parameter === 'hour')
+    ) {
+      const message =
+        'These four models are fixed for the presentation. Choose a concept, camera view or daylight setting.';
+      notify(message);
+      return message;
+    }
     const result = executeAction(stateRef.current.spec, a);
     if (result.history) history(result.history);
     else if (result.spec) {
@@ -448,7 +435,7 @@ export default function Studio() {
           ...v,
           {
             role: 'Placeform',
-            text: 'A model proposal is ready to generate and review in the app.',
+            text: 'These four models are fixed. Try “aerial view” or change the daylight setting.',
           },
         ].slice(-12),
       );
@@ -544,7 +531,7 @@ export default function Studio() {
       n.brief =
         'Draw a boundary and research this place before choosing a direction.';
     }
-    setSpec(n);
+    setSpec(fixedDemoSpec(n));
     setPast([]);
     setFuture([]);
     setSelected('A');
@@ -557,7 +544,7 @@ export default function Studio() {
     );
   }
   function loadProject(p: SavedState) {
-    setSpec(p.project);
+    setSpec(fixedDemoSpec(p.project));
     setCustomSources(p.project.evidence || []);
     setSelected(p.project.reviewedConcept || p.project.concept);
     setPast(p.past || []);
@@ -581,6 +568,10 @@ export default function Studio() {
     kind: 'project' | 'image' | 'research',
   ) {
     if (!file) return;
+    if (['image', 'project'].includes(kind)) {
+      notify('The presentation uses four fixed concepts.');
+      return;
+    }
     try {
       if (file.size > 6 * 1024 * 1024)
         throw new Error('Use a file smaller than 6 MB.');
@@ -686,7 +677,10 @@ export default function Studio() {
             </span>
             placeform<span className="beta">STUDIO</span>
           </a>
-          <button className="project-title" onClick={() => setDialog('new')}>
+          <button
+            className="project-title"
+            onClick={() => setDialog('history')}
+          >
             <span className="project-dot" />
             {spec.name}
             <span className="muted"> / </span>
@@ -698,9 +692,6 @@ export default function Studio() {
             <ChevronDown size={12} />
           </button>
           <div className="top-actions">
-            <button className="plain" onClick={() => setDialog('new')}>
-              <Plus size={16} /> New project
-            </button>
             <span
               className={`saved ${saveState === 'Save failed' ? 'error' : ''}`}
             >
@@ -714,7 +705,7 @@ export default function Studio() {
         </header>
         <div className="stage-bar">
           <div className="stage-caption">
-            <span className="tiny-number">01—05</span> YOUR DESIGN PROCESS
+            <span className="tiny-number">01—04</span> YOUR DESIGN PROCESS
           </div>
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="stage-tabs">
@@ -735,32 +726,6 @@ export default function Studio() {
             <Settings2 size={16} />
           </Tool>
         </div>
-        <div className="generation-toolbar">
-          <SiteWorkflowStatus
-            spec={spec}
-            ready={ready}
-            request={siteWorkflowRequest}
-            getSpec={() => stateRef.current.spec}
-            onApply={(next) => {
-              commit(next);
-              setCustomSources(next.evidence || []);
-            }}
-          />
-          <button
-            className="outline-button"
-            onClick={() =>
-              openGeneration(
-                tab === 'place'
-                  ? 'research'
-                  : tab === 'model'
-                    ? 'design'
-                    : 'concepts',
-              )
-            }
-          >
-            Generate & review <ArrowUpRight size={14} />
-          </button>
-        </div>
         <div className={`workspace workspace-${tab}`}>
           {tab === 'concepts' && (
             <>
@@ -778,7 +743,7 @@ export default function Studio() {
                 <p>
                   One place. Four architectural directions.
                   <br />
-                  Find a starting point, then make it your own.
+                  Explore each direction in three dimensions.
                 </p>
               </div>
               <div className="concept-layout">
@@ -794,8 +759,8 @@ export default function Studio() {
                   </span>
                   <button
                     className="image-expand"
-                    title="Develop in 3D"
-                    aria-label="Develop in 3D"
+                    title="View in 3D"
+                    aria-label="View in 3D"
                     onClick={developSelected}
                   >
                     <Box size={17} />
@@ -805,14 +770,7 @@ export default function Studio() {
                       {spec.site.center[1].toFixed(4)}°,{' '}
                       {spec.site.center[0].toFixed(4)}° · REFERENCE STUDY
                     </span>
-                    <span>
-                      {spec.assets[selected]
-                        ? 'Concept image'
-                        : spec.demoContext
-                          ? 'Image pending'
-                          : 'AI concept image'}{' '}
-                      · Design intent
-                    </span>
+                    <span>{'Concept reference'} · Design intent</span>
                   </div>
                 </div>
                 <aside className="concept-info">
@@ -850,12 +808,7 @@ export default function Studio() {
                     <p>{c.tradeoff}</p>
                   </div>
                   <button className="accent-button" onClick={developSelected}>
-                    {spec.demoContext
-                      ? canReviewImage(spec, selected)
-                        ? 'Approve image & develop in 3D'
-                        : 'Generate this direction'
-                      : 'Develop this direction'}{' '}
-                    <ArrowRight size={17} />
+                    {'View in 3D'} <ArrowRight size={17} />
                   </button>
                 </aside>
               </div>
@@ -863,7 +816,10 @@ export default function Studio() {
                 {projectConcepts.map((d) => (
                   <button
                     className={`concept-tile ${selected === d.id ? 'selected' : ''}`}
-                    onClick={() => setSelected(d.id)}
+                    onClick={() => {
+                      setSelected(d.id);
+                      commit(fixedDemoSpec(spec, d.id));
+                    }}
                     key={d.id}
                   >
                     <div className="tile-preview">
@@ -883,17 +839,6 @@ export default function Studio() {
                   Approximate scale · {spec.length} × {spec.width} m envelope ·
                   comparable viewpoints
                 </span>
-                <button
-                  className="text-link"
-                  onClick={() => {
-                    openGeneration(
-                      'image',
-                      `Refine concept ${selected}: ${c.name}. Preserve the approved silhouette and locked features; resolve roof, entrance and facade details.`,
-                    );
-                  }}
-                >
-                  Refine this direction <ArrowUpRight size={13} />
-                </button>
               </div>
             </>
           )}
@@ -940,12 +885,6 @@ export default function Studio() {
                       const next = freshSiteDesign(current, site);
                       if (!drawn) next.boundaryConfirmed = false;
                       commit(next);
-                      if (drawn)
-                        setSiteWorkflowRequest({
-                          id: crypto.randomUUID(),
-                          spec: next,
-                          concept: selected,
-                        });
                     }}
                     onMessage={notify}
                   />
@@ -1122,7 +1061,7 @@ export default function Studio() {
                 <div className="eyebrow">
                   {tab === 'model'
                     ? '03 / THE ARCHITECTURE, RESOLVED'
-                    : '05 / PRESENT THE DESIGN'}{' '}
+                    : '04 / PRESENT THE DESIGN'}{' '}
                   · REVISION {String(spec.revision).padStart(2, '0')}
                 </div>
                 <h1>
@@ -1178,7 +1117,7 @@ export default function Studio() {
                     onSelect={(f) => {
                       setElement(f);
                       notify(
-                        `${featureLabels[f]} selected. Voice edits are grounded in this element.`,
+                        `${featureLabels[f]} selected. Reference model feature.`,
                       );
                     }}
                     onReady={onSceneReady}
@@ -1270,125 +1209,32 @@ export default function Studio() {
               {tab === 'model' && (
                 <aside className="model-inspector">
                   <div className="section-kicker">
-                    DESIGN CONTROLS <SlidersHorizontal size={15} />
+                    REFERENCE MODEL <Box size={15} />
                   </div>
-                  <h2>
-                    {element ? featureLabels[element] : 'Make it your own.'}
-                  </h2>
+                  <h2>{activeConcept.name}</h2>
                   <p>
                     {element
-                      ? 'The selected feature grounds your next voice instruction.'
-                      : 'Select a building element, or tell Placeform what to change.'}
+                      ? `Selected: ${featureLabels[element]}.`
+                      : activeConcept.description}
                   </p>
-                  <div className="lock-list">
-                    {(Object.keys(featureLabels) as Feature[]).map((f) => (
-                      <div className={element === f ? 'selected' : ''} key={f}>
-                        <button onClick={() => setElement(f)}>
-                          {featureLabels[f]}
-                        </button>
-                        <Tool
-                          label={`${spec.locks.includes(f) ? 'Unlock' : 'Lock'} ${featureLabels[f].toLowerCase()}`}
-                          active={spec.locks.includes(f)}
-                          onClick={() =>
-                            dispatch({
-                              type: spec.locks.includes(f) ? 'unlock' : 'lock',
-                              feature: f,
-                            })
-                          }
-                        >
-                          {spec.locks.includes(f) ? (
-                            <LockKeyhole size={14} />
-                          ) : (
-                            <LockKeyholeOpen size={14} />
-                          )}
-                        </Tool>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="parameter">
-                    <label>
-                      Facade fin depth{' '}
-                      <strong data-testid="fin-depth">
-                        {spec.finDepth.toFixed(2)} m
-                      </strong>
-                    </label>
-                    <Slider
-                      aria-label="Facade fin depth"
-                      value={[spec.finDepth]}
-                      min={0.2}
-                      max={2.5}
-                      step={0.05}
-                      disabled={spec.locks.includes('facade')}
-                      onValueChange={(v) => {
-                        const val = Array.isArray(v) ? v[0] : v;
-                        if (!dragStart.current)
-                          dragStart.current = clone(stateRef.current.spec);
-                        setSpec((s) => ({ ...s, finDepth: val }));
-                      }}
-                      onValueCommitted={(v) => {
-                        const val = Array.isArray(v) ? v[0] : v;
-                        if (dragStart.current) {
-                          const prev = dragStart.current;
-                          setPast((p) => [...p, prev].slice(-30));
-                          setFuture([]);
-                          setSpec((s) => ({
-                            ...s,
-                            finDepth: val,
-                            revision: nextRevision(),
-                          }));
-                          dragStart.current = null;
+                  <p className="fineprint">
+                    Approximate exterior reconstructed from one image. Hidden
+                    geometry and dimensions are inferred.
+                  </p>
+                  <div className="view-buttons">
+                    {projectConcepts.map((direction) => (
+                      <button
+                        key={direction.id}
+                        className={
+                          spec.concept === direction.id ? 'active' : ''
                         }
-                      }}
-                    />
-                  </div>
-                  <div className="parameter">
-                    <label>
-                      Building height{' '}
-                      <strong>{spec.height.toFixed(1)} m</strong>
-                    </label>
-                    <input
-                      type="number"
-                      aria-label="Building height"
-                      min={8}
-                      max={26}
-                      step={0.5}
-                      value={spec.height}
-                      disabled={spec.locks.includes('massing')}
-                      onChange={(e) =>
-                        dispatch({
-                          type: 'set',
-                          parameter: 'height',
-                          value: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="mix-controls">
-                    <span className="field-label">COMBINE DIRECTIONS</span>
-                    {(['massing', 'facade', 'landscape'] as const).map((f) => (
-                      <label key={f}>
-                        {featureLabels[f]}
-                        <NativeSelect
-                          aria-label={`${featureLabels[f]} concept`}
-                          value={
-                            f === 'massing'
-                              ? spec.concept
-                              : f === 'facade'
-                                ? spec.material
-                                : spec.landscape
-                          }
-                          disabled={spec.locks.includes(f)}
-                          onChange={(e) =>
-                            dispatch({ type: 'mix', [f]: e.target.value })
-                          }
-                        >
-                          {projectConcepts.map((c) => (
-                            <NativeSelectOption value={c.id} key={c.id}>
-                              {c.id} · {c.name}
-                            </NativeSelectOption>
-                          ))}
-                        </NativeSelect>
-                      </label>
+                        onClick={() => {
+                          setSelected(direction.id);
+                          commit(fixedDemoSpec(spec, direction.id));
+                        }}
+                      >
+                        {direction.id} · {direction.name}
+                      </button>
                     ))}
                   </div>
                   <div className="daylight-control">
@@ -1459,12 +1305,11 @@ export default function Studio() {
           )}
           {tab === 'model' && (
             <div className="model-bottom">
-              <div>
-                <span className="status-dot" /> One specification coordinates
-                geometry, drawings and camera references.
-              </div>
-              <button className="text-link" onClick={() => setTab('drawings')}>
-                Review the schematic drawings <ArrowRight size={14} />
+              <span>
+                Reference-based exterior study · fixed concept geometry
+              </span>
+              <button className="text-link" onClick={() => setTab('film')}>
+                Create a film <ArrowRight size={14} />
               </button>
             </div>
           )}
@@ -1570,7 +1415,12 @@ export default function Studio() {
                 <div className="panel-loading">Opening the film workspace…</div>
               }
             >
-              <FilmPanel spec={spec} api={sceneAPI} onMessage={notify} />
+              <FilmPanel
+                key={`${spec.concept}:${spec.revision}`}
+                spec={spec}
+                api={sceneAPI}
+                onMessage={notify}
+              />
             </Suspense>
           )}
         </div>
@@ -1615,7 +1465,7 @@ export default function Studio() {
                       ? 'Considering your design…'
                       : voiceState === 'speaking'
                         ? 'Placeform is speaking…'
-                        : 'Where should we take the design?'
+                        : 'Choose a camera view or daylight setting'
                 }
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
@@ -1661,27 +1511,6 @@ export default function Studio() {
             {saveState.toUpperCase()}
           </span>
         </footer>
-        <GenerationPanel
-          spec={spec}
-          selected={selected}
-          request={generationRequest}
-          onClose={() => setGenerationRequest(null)}
-          onOpen={() => openGeneration('research')}
-          onMessage={notify}
-          capture={
-            sceneAPI
-              ? () =>
-                  sceneAPI.capture(
-                    stateRef.current.spec.view,
-                    stateRef.current.spec.hour,
-                  )
-              : undefined
-          }
-          onApply={(next) => {
-            commit(next);
-            setCustomSources(next.evidence || []);
-          }}
-        />
         {busy && (
           <output className="busy-indicator">
             <span className="spinner" />
@@ -1769,7 +1598,7 @@ export default function Studio() {
                   <button
                     onClick={() => {
                       const n = createDemo();
-                      setSpec(n);
+                      setSpec(fixedDemoSpec(n));
                       setPast([]);
                       setFuture([]);
                       setSelected('A');
@@ -1809,7 +1638,7 @@ export default function Studio() {
                     <div>
                       <strong>Architectural review package</strong>
                       <p>
-                        Seven SVG/PDF drawings, specification, cited brief
+                        Concept reference, specification, cited brief
                         {sceneAPI ? ', GLB and four model views' : ''}.
                       </p>
                     </div>
@@ -1871,16 +1700,6 @@ export default function Studio() {
                     </div>
                     <Download size={18} />
                   </button>
-                  <label className="file-button">
-                    <Upload size={21} /> Import a project JSON
-                    <input
-                      type="file"
-                      accept="application/json,.json"
-                      onChange={(e) =>
-                        importFile(e.target.files?.[0], 'project')
-                      }
-                    />
-                  </label>
                 </div>
               </>
             )}

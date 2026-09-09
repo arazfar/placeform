@@ -1,3 +1,4 @@
+import { demoConcept } from './demo-catalog';
 import { preparedPresidio } from './presidio';
 import type { sources } from './research';
 export type ConceptId = 'A' | 'B' | 'C' | 'D';
@@ -287,6 +288,7 @@ export function canReviewImage(s: BuildingSpec, id: ConceptId) {
   );
 }
 export function canOpenModel(s: BuildingSpec) {
+  if (s.id === 'presidio-hackathon-v1') return true;
   return (
     !s.demoContext ||
     (!!s.boundaryConfirmed &&
@@ -309,6 +311,7 @@ export function reviewConcept(s: BuildingSpec, id: ConceptId): BuildingSpec {
   };
 }
 export function conceptImage(s: BuildingSpec, id: ConceptId) {
+  if (s.id === 'presidio-hackathon-v1') return demoConcept(id).image;
   return (
     s.assets[id] ||
     (s.directions || s.siteDesignPending
@@ -458,7 +461,7 @@ export function validSpec(v: unknown): v is BuildingSpec {
     s.length <= 120 &&
     Number.isFinite(s.width) &&
     s.width >= 20 &&
-    s.width <= 65 &&
+    s.width <= (s.id === 'presidio-hackathon-v1' ? 84 : 65) &&
     Number.isFinite(s.height) &&
     s.height >= 8 &&
     s.height <= 26 &&
