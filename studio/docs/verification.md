@@ -48,3 +48,13 @@ This is a local-browser-persisted, owner-private architectural prototype. Large 
 - Browser QA with controlled provider responses: a coordinate drag paused for 1.8 seconds submitted nothing until release, then research, directions, and four images completed without an approval dialog. Reload retained all six results without new submissions. Midpoint insertion/drag likewise waited for release and produced exactly one six-output workflow; map panning submitted nothing.
 - Browser QA also verified coordinate-search selection automatically uses the paid API fallback when Codex is unavailable, displays the paid provider, and applies all six outputs without approval. Generated search boundaries use the map editor’s supported coordinate precision and remain editable.
 - Progress appears in the generation toolbar so it does not cover map handles. Film and export actions remain separate. The browser check used mocked generation results; no live provider generation or billing was exercised for this change.
+
+## Drag selection and simpler Site workspace
+
+This update replaces the earlier corner-click editor and search-triggered workflow described above. Search now moves the map; releasing a valid rectangular selection starts the existing workflow.
+
+- All 34 Node tests pass. Seven added tests cover normalized rectangles, pointer ownership, cancellation, minimum drag size, geographic bounds, location context, and selection at the map center. Typecheck, targeted Oxlint, production build, and `git diff --check` pass.
+- An isolated browser test page rendered the real SiteMap without provider callbacks. Forward and reverse drags each committed once on release. A click, tiny drag, Move map drag, and coordinate search committed nothing. A drag released beyond the map edge committed one clamped rectangle. A selection after coordinate search used the new location. Resetting the external boundary recentered the map and cleared the search.
+- A small valid selection displayed both success feedback and the building-containment warning. The keyboard-accessible map-center selection produced a valid boundary and closed Map options.
+- The main Site page was inspected at 390px and 1280px widths with no page-wide horizontal overflow. Research and site details start collapsed. Idle voice controls are hidden on Site; active voice sessions retain their controls. The new-project dialog asks only for an optional name and directs the user to the map.
+- The temporary test route and browser tab were removed. No live generation, provider billing, or physical touch-device testing was performed for this update.

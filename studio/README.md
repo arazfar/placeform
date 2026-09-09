@@ -1,6 +1,6 @@
 # Placeform
 
-An architectural exterior design studio built with React, TypeScript, MapLibre + Terra Draw, and React Three Fiber. The prepared Eastbank Exchange study opens with four generated concepts, nine primary-source design references, a detailed editable exterior model, schematic drawings, and a model-rendered film.
+An architectural exterior design studio built with React, TypeScript, MapLibre, and React Three Fiber. The prepared Eastbank Exchange study opens with four generated concepts, nine primary-source design references, a detailed editable exterior model, schematic drawings, and a model-rendered film.
 
 ## Run locally
 
@@ -26,18 +26,18 @@ No long-lived key is sent to browser code or stored in project exports. `/api/st
 
 ## A short design review
 
-1. Explore the four concepts and their local evidence in Place.
+1. Explore the four concepts and their local evidence in Site.
 2. Develop A in 3D. Type “Deepen the fins to 1.2 metres.” Click Lock facade and attempt another edit. Undo or redo with the toolbar or Cmd/Ctrl+Z.
 3. Try “Use A’s massing, B’s facade, and C’s landscape” and “Show the entrance at sunset.” Connect voice for natural spoken instructions. Clicked elements and feature locks ground the voice session.
-4. Draw or edit a study boundary, then release it. Research, four directions, and four images generate and apply automatically. Search selections also start a fresh design. Track progress, stop, or retry from the persistent activity card; GeoJSON export remains available.
+4. Open Site, search for a location, then drag a rectangle on the map. Release to begin research, four directions, and four images automatically. Search only moves the map. Use Move map to pan. Map options includes keyboard selection at the map center and GeoJSON export. Track progress, stop, or retry from the activity card.
 5. Open the model before exporting the architectural review package. It contains seven vector SVG/PDF sheets, JSON specification, GeoJSON, source-backed brief, metre-scale GLB, and four actual model presentation views.
 6. In Film, watch the bundled original walkthrough or prepare and record a current-revision shot. The four shots total 27 seconds. Verify live AIand price, review frames/prompt, then generate. Review completed video for architectural drift against the retained original clip.
 
 ## Research, concepts and model proposals in the UI
 
-Open **Generate & review** from any stage. Local development uses the signed-in Codex CLI by default, with `codex exec` JSON events, isolated job directories, restricted tools, and the subscription's available allowance. Research browses primary sources; concept generation returns four named directions and palettes; image generation/editing uses the subscription image tool. No API keys are inherited by the Codex subprocess. The local adapter accepts localhost, same-origin requests with a per-server token.
+Open **Generate & review** from Concepts, Model, Drawings, Film, or Export. Site also offers optional research within its research disclosure. Local development uses the signed-in Codex CLI by default, with `codex exec` JSON events, isolated job directories, restricted tools, and the subscription's available allowance. Research browses primary sources; concept generation returns four named directions and palettes; image generation/editing uses the subscription image tool. No API keys are inherited by the Codex subprocess. The local adapter accepts localhost, same-origin requests with a per-server token.
 
-Finishing a map edit starts a fresh, undoable design for that boundary. Existing feature locks, research, directions, and images are cleared; building dimensions and the active concept remain. No prepared demo images are substituted while generation is pending.
+Releasing a valid selection starts a fresh, undoable design for that boundary. Clicks, tiny drags, cancelled drags, panning, and location searches do not start generation. A new project needs only an optional name; choose its site on the map. Existing feature locks, research, directions, and images are cleared when a new site is selected; building dimensions and the active concept remain. No prepared demo images are substituted while generation is pending.
 
 1. Research runs first and applies its brief and citations automatically.
 2. Four locally grounded directions are created from that research and applied to the model and drawings.

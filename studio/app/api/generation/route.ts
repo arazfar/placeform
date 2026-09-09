@@ -57,7 +57,7 @@ function normalize(data: ProviderResponse): GenerationJob {
     try {
       const kind = data.metadata?.kind;
       if (!kind)
-        throw new Error('This response does not belong to a Placeform job.');
+        throw new Error('This response does not belong to a Watt & Wonder job.');
       const image = data.output?.find(
         (x) => x.type === 'image_generation_call',
       )?.result;

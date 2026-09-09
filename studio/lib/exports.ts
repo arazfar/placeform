@@ -75,7 +75,7 @@ export async function reviewPackage(
   }
   zip.file(
     'README.txt',
-    `PLACEFORM — ${spec.name}\nRevision ${spec.revision}\nSCHEMATIC DESIGN — NOT FOR CONSTRUCTION\n\nThe SVG and PDF drawings, GLB and presentation views derive from the same versioned building specification. Print PDF at 100% on A3. Dimensions in metres.\n\n${spec.site.notes}\n\nNo site entitlement, noise, cooling-water, energy, carbon or flood-performance claims are established. Concealed construction and equipment are schematic.\n\n${scene ? 'Includes actual model renders and geometry.' : 'Model was unavailable; this package includes specification and drawings only.'}\n`,
+    `WATT & WONDER — ${spec.name}\nRevision ${spec.revision}\nSCHEMATIC DESIGN — NOT FOR CONSTRUCTION\n\nThe SVG and PDF drawings, GLB and presentation views derive from the same versioned building specification. Print PDF at 100% on A3. Dimensions in metres.\n\n${spec.site.notes}\n\nNo site entitlement, noise, cooling-water, energy, carbon or flood-performance claims are established. Concealed construction and equipment are schematic.\n\n${scene ? 'Includes actual model renders and geometry.' : 'Model was unavailable; this package includes specification and drawings only.'}\n`,
   );
   onProgress('Packing the review package…');
   download(
@@ -121,7 +121,7 @@ export async function taskPackage(
   zip.file('task.json', JSON.stringify(task, null, 2));
   zip.file(
     'TASK.md',
-    `# Placeform ${kind} handoff\n\n${prompt}\n\nProject: ${spec.name}; revision: ${spec.revision}.\n\n${task.requirements.map((x) => '- ' + x).join('\n')}\n\nImport results through Placeform’s handoff panel; review before applying.\n`,
+    `# Watt & Wonder ${kind} handoff\n\n${prompt}\n\nProject: ${spec.name}; revision: ${spec.revision}.\n\n${task.requirements.map((x) => '- ' + x).join('\n')}\n\nImport results through Watt & Wonder’s handoff panel; review before applying.\n`,
   );
   if (scene && kind === 'assets')
     for (const view of [

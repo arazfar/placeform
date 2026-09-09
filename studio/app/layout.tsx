@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Placeform — Architecture, from place',
+  title: 'Watt & Wonder — Architecture, with a sense of place',
   icons: { icon: '/favicon.svg' },
   description:
     'An architectural studio for place-led data center exteriors. Explore Portland’s Central Eastside, develop concepts, and steer a shared 3D design.',

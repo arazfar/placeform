@@ -99,7 +99,7 @@ const Scene = lazy(() => import('./scene'));
 const SiteMap = lazy(() => import('./site-map'));
 const FilmPanel = lazy(() => import('./film-panel'));
 const stages = [
-  { id: 'place', label: 'Place', icon: MapPin },
+  { id: 'place', label: 'Site', icon: MapPin },
   { id: 'concepts', label: 'Concepts', icon: Layers },
   { id: 'model', label: '3D model', icon: Box },
   { id: 'drawings', label: 'Drawings', icon: Compass },
@@ -120,7 +120,7 @@ function Tool({
   children,
   onClick,
   disabled = false,
-  active = false,
+  active,
 }: {
   label: string;
   children: React.ReactNode;
@@ -134,6 +134,7 @@ function Tool({
         render={
           <button
             aria-label={label}
+            aria-pressed={active}
             className={`tool-button ${active ? 'active' : ''}`}
             onClick={onClick}
             disabled={disabled}
@@ -176,8 +177,6 @@ export default function Studio() {
     [handoffKind, setHandoffKind] = useState<'research' | 'assets'>('assets'),
     [taskPrompt, setTaskPrompt] = useState(''),
     [newName, setNewName] = useState(''),
-    [newPlace, setNewPlace] = useState(''),
-    [newCoords, setNewCoords] = useState('45.5134, -122.6653'),
     [voiceMessages, setVoiceMessages] = useState<
       { role: string; text: string }[]
     >([]),
@@ -386,7 +385,7 @@ export default function Studio() {
     if (a) {
       const msg = dispatch(a);
       setVoiceMessages((v) =>
-        [...v, { role: 'Placeform', text: msg }].slice(-12),
+        [...v, { role: 'Watt & Wonder', text: msg }].slice(-12),
       );
     } else {
       openGeneration(
@@ -397,7 +396,7 @@ export default function Studio() {
         [
           ...v,
           {
-            role: 'Placeform',
+            role: 'Watt & Wonder',
             text: 'A model proposal is ready to generate and review in the app.',
           },
         ].slice(-12),
@@ -434,7 +433,7 @@ export default function Studio() {
         (text) => {
           notify(text);
           setVoiceMessages((v) =>
-            [...v, { role: 'Placeform', text }].slice(-12),
+            [...v, { role: 'Watt & Wonder', text }].slice(-12),
           );
         },
       );
@@ -475,20 +474,14 @@ export default function Studio() {
     }
   }
   function startNew() {
-    const m = newCoords.match(
-      /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/,
+    const n = freshSiteDesign(
+      createDemo(),
+      siteAt(spec.site.center, spec.site.location),
     );
-    if (!m || Math.abs(+m[1]) > 85 || Math.abs(+m[2]) > 180) {
-      notify('Enter valid latitude, longitude coordinates.');
-      return;
-    }
-    const n = createDemo();
     n.id = crypto.randomUUID();
-    n.name = newName.trim() || 'Untitled place study';
-    n.site = siteAt([+m[2], +m[1]], newPlace.trim() || 'New study site');
-    n.researchReady = false;
-    n.brief =
-      'Research this place before selecting an architectural direction.';
+    n.name = newName.trim() || 'Untitled study';
+    n.brief = 'Select a site on the map to begin your design.';
+    setSiteWorkflowRequest(null);
     setSpec(n);
     setPast([]);
     setFuture([]);
@@ -497,9 +490,7 @@ export default function Studio() {
     setTab('place');
     setDialog(null);
     setNewName('');
-    notify(
-      'New project created. Refine the boundary and prepare a local research brief.',
-    );
+    notify('Find a place, then drag to select your site.');
   }
   function loadProject(p: SavedState) {
     setSpec(p.project);
@@ -542,7 +533,7 @@ export default function Studio() {
         const data = JSON.parse(await file.text());
         if (kind === 'project' && !validSpec(data))
           throw new Error(
-            'This is not a valid Placeform specification. Dimensions, site geometry or schema are invalid.',
+            'This is not a valid Watt & Wonder specification. Dimensions, site geometry or schema are invalid.',
           );
         if (
           kind === 'research' &&
@@ -614,6 +605,9 @@ export default function Studio() {
   const isPortland =
     Math.abs(spec.site.center[0] + 122.6653) < 0.015 &&
     Math.abs(spec.site.center[1] - 45.5134) < 0.015;
+  const showVoiceDock =
+    tab !== 'place' ||
+    ['connecting', 'listening', 'thinking', 'speaking'].includes(voiceState);
   const shownSources = spec.researchReady
     ? spec.evidence || (isPortland ? sources : [])
     : [];
@@ -621,62 +615,93 @@ export default function Studio() {
     <TooltipProvider>
       <main className="studio">
         <header className="topbar">
-          <a className="brand" href="/">
-            <span className="brand-mark">
-              p<span>f</span>
+          <a className="brand" href="/" aria-label="Watt & Wonder studio">
+            <span className="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none">
+                <path
+                  d="M7 12l6 18 7-18 7 18 6-18"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12 7h16M16 34h8"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                />
+              </svg>
             </span>
-            placeform<span className="beta">STUDIO</span>
+            <span className="brand-wordmark">
+              Watt <i>&</i> Wonder<small>ARCHITECTURE STUDIO</small>
+            </span>
           </a>
-          <button className="project-title" onClick={() => setDialog('new')}>
-            <span className="project-dot" />
-            {spec.name}
-            <span className="muted"> / </span>
-            <span className="muted">
-              {spec.site.location === 'Portland, Oregon'
-                ? 'Portland, OR'
-                : spec.site.name.split(',')[0]}
+          <button
+            className="project-title"
+            onClick={() => setDialog('new')}
+            aria-label={`Switch project: ${spec.name}`}
+          >
+            <span
+              className={`project-dot ${saveState === 'Save failed' ? 'error' : ''}`}
+              title={saveState}
+            />
+            <span className="project-context">
+              <strong>{spec.name}</strong>
+              <small>
+                {spec.site.location === 'Portland, Oregon'
+                  ? 'Portland, Oregon'
+                  : spec.site.location}
+              </small>
             </span>
-            <ChevronDown size={12} />
+            {saveState === 'Save failed' && (
+              <output className="save-error">Save failed</output>
+            )}
+            <ChevronDown size={14} />
           </button>
           <div className="top-actions">
-            <button className="plain" onClick={() => setDialog('new')}>
-              <Plus size={16} /> New project
-            </button>
-            <span
-              className={`saved ${saveState === 'Save failed' ? 'error' : ''}`}
+            <button
+              className="plain"
+              onClick={() => setDialog('new')}
+              aria-label="New project"
             >
-              <Check size={13} />
-              {saveState}
-            </span>
+              <Plus size={16} /> <span>New project</span>
+            </button>
             <button className="dark-button" onClick={() => setDialog('export')}>
               Export <ArrowUpRight size={15} />
             </button>
           </div>
         </header>
-        <div className="stage-bar">
-          <div className="stage-caption">
-            <span className="tiny-number">01—05</span> YOUR DESIGN PROCESS
-          </div>
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="stage-tabs">
+        <div className={`stage-bar ${tab === 'place' ? 'site-stage-bar' : ''}`}>
+          <Tabs value={tab} onValueChange={setTab} className="stage-navigation">
+            <TabsList className="stage-tabs" aria-label="Design stages">
               {stages.map(({ id, label, icon: Icon }, i) => (
                 <TabsTrigger value={id} key={id}>
                   <Icon size={16} />
                   {label}
-                  <span>0{i + 1}</span>
+                  <span className="stage-number">0{i + 1}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
-          <span className="schematic">SCHEMATIC DESIGN</span>
-          <Tool
-            label="Connections & voice"
-            onClick={() => setDialog('settings')}
-          >
-            <Settings2 size={16} />
-          </Tool>
+          <div className="stage-actions">
+            {tab !== 'place' && (
+              <button
+                className="outline-button generate-button"
+                onClick={() =>
+                  openGeneration(tab === 'model' ? 'design' : 'concepts')
+                }
+              >
+                <span>Generate & review</span> <ArrowUpRight size={15} />
+              </button>
+            )}
+            <Tool
+              label="Connections & voice"
+              onClick={() => setDialog('settings')}
+            >
+              <Settings2 size={17} />
+            </Tool>
+          </div>
         </div>
-        <div className="generation-toolbar">
+        <div className="workflow-row">
           <SiteWorkflowStatus
             spec={spec}
             ready={ready}
@@ -687,20 +712,6 @@ export default function Studio() {
               setCustomSources(next.evidence || []);
             }}
           />
-          <button
-            className="outline-button"
-            onClick={() =>
-              openGeneration(
-                tab === 'place'
-                  ? 'research'
-                  : tab === 'model'
-                    ? 'design'
-                    : 'concepts',
-              )
-            }
-          >
-            Generate & review <ArrowUpRight size={14} />
-          </button>
         </div>
         <div className={`workspace workspace-${tab}`}>
           {tab === 'concepts' && (
@@ -723,35 +734,58 @@ export default function Studio() {
                 </p>
               </div>
               <div className="concept-layout">
-                <div className="image-stage">
-                  <img
-                    src={conceptImage(spec, selected)}
-                    alt={`${c.name}, a speculative data-center exterior concept`}
-                  />
-                  <span className="image-chip">
-                    CONCEPT {c.id}
-                    <span />
-                    PERSPECTIVE STUDY
-                  </span>
-                  <button
-                    className="image-expand"
-                    title="Develop in 3D"
-                    aria-label="Develop in 3D"
-                    onClick={() => {
-                      commit(applyConcept(spec, selected));
-                      setTab('model');
-                    }}
-                  >
-                    <Box size={17} />
-                  </button>
-                  <div className="image-bottom">
-                    <span>45.5134° N &nbsp; 122.6653° W · REFERENCE STUDY</span>
-                    <span>
-                      {spec.assets[selected]
-                        ? 'Imported concept image'
-                        : 'AI concept image'}{' '}
-                      · Design intent
+                <div className="concept-gallery">
+                  <div className="image-stage">
+                    <img
+                      src={conceptImage(spec, selected)}
+                      alt={`${c.name}, a speculative data-center exterior concept`}
+                    />
+                    <span className="image-chip">
+                      CONCEPT {c.id}
+                      <span />
+                      PERSPECTIVE STUDY
                     </span>
+                    <button
+                      className="image-expand"
+                      title="Develop in 3D"
+                      aria-label="Develop in 3D"
+                      onClick={() => {
+                        commit(applyConcept(spec, selected));
+                        setTab('model');
+                      }}
+                    >
+                      <Box size={17} />
+                    </button>
+                    <div className="image-bottom">
+                      <span>EXTERIOR STUDY / {c.id}</span>
+                      <span>
+                        {spec.assets[selected]
+                          ? 'Imported concept image'
+                          : 'AI concept image'}{' '}
+                        · Design intent
+                      </span>
+                    </div>
+                  </div>
+                  <div className="concept-strip">
+                    {projectConcepts.map((d) => (
+                      <button
+                        className={`concept-tile ${selected === d.id ? 'selected' : ''}`}
+                        onClick={() => setSelected(d.id)}
+                        aria-pressed={selected === d.id}
+                        aria-label={`Explore direction ${d.id}: ${d.name}`}
+                        key={d.id}
+                      >
+                        <div className="tile-preview">
+                          <img src={conceptImage(spec, d.id)} alt="" />
+                        </div>
+                        <span className="tile-letter">{d.id}</span>
+                        <span>
+                          <strong>{d.name}</strong>
+                          <small>{d.roof}</small>
+                        </span>
+                        {selected === d.id && <Check size={17} />}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <aside className="concept-info">
@@ -802,25 +836,6 @@ export default function Studio() {
                   </button>
                 </aside>
               </div>
-              <div className="concept-strip">
-                {projectConcepts.map((d) => (
-                  <button
-                    className={`concept-tile ${selected === d.id ? 'selected' : ''}`}
-                    onClick={() => setSelected(d.id)}
-                    key={d.id}
-                  >
-                    <div className="tile-preview">
-                      <img src={conceptImage(spec, d.id)} alt="" />
-                    </div>
-                    <span className="tile-letter">{d.id}</span>
-                    <span>
-                      <strong>{d.name}</strong>
-                      <small>{d.roof}</small>
-                    </span>
-                    {selected === d.id && <Check size={17} />}
-                  </button>
-                ))}
-              </div>
               <div className="under-gallery">
                 <span>
                   Approximate scale · {spec.length} × {spec.width} m envelope ·
@@ -842,29 +857,15 @@ export default function Studio() {
           )}
           {tab === 'place' && (
             <>
-              <div className="workspace-heading">
+              <div className="workspace-heading site-heading">
                 <div>
-                  <div className="eyebrow">01 / THE PLACE COMES FIRST</div>
-                  <h1>
-                    {isPortland
-                      ? 'The working edge of Portland.'
-                      : spec.site.name.split(',')[0]}
-                  </h1>
+                  <div className="eyebrow">01 / START WITH A PLACE</div>
+                  <h1>Choose your site.</h1>
+                  <p>
+                    Find a place. Drag to select an area. Release to start your
+                    design.
+                  </p>
                 </div>
-                <button
-                  className="outline-button"
-                  onClick={() => {
-                    openGeneration(
-                      'research',
-                      `Research the geofence at ${spec.site.name}. Curate architectural history, materials, climate, landscape, surrounding buildings and community concerns into a cited design brief.`,
-                    );
-                  }}
-                >
-                  <BookOpen size={15} />{' '}
-                  {spec.researchReady
-                    ? 'Extend the research'
-                    : 'Research this place'}
-                </button>
               </div>
               <div className="place-layout">
                 <Suspense
@@ -890,7 +891,7 @@ export default function Studio() {
                 </Suspense>
                 <aside className="site-brief">
                   <div className="section-kicker">
-                    THE STUDY SITE <MapPin size={14} />
+                    CURRENT SELECTION <MapPin size={14} />
                   </div>
                   <h2>{spec.site.name.split(',')[0]}</h2>
                   <p>{spec.site.location}</p>
@@ -902,141 +903,176 @@ export default function Studio() {
                       </strong>
                       <small>Illustrative boundary</small>
                     </div>
-                    <div>
-                      <strong>
-                        {spec.site.rotation.toFixed(0)}
-                        <span>°</span>
-                      </strong>
-                      <small>Long-axis bearing</small>
-                    </div>
                   </div>
-                  <label className="field-label">
-                    EDITABLE DESIGN BRIEF
-                    <textarea
-                      value={spec.brief}
-                      onFocus={() => {
-                        dragStart.current = clone(stateRef.current.spec);
-                      }}
-                      onChange={(e) =>
-                        setSpec((s) => ({ ...s, brief: e.target.value }))
-                      }
-                      onBlur={() => {
-                        if (
-                          dragStart.current &&
-                          dragStart.current.brief !==
-                            stateRef.current.spec.brief
-                        ) {
-                          const prev = dragStart.current;
-                          setPast((p) => [...p, prev].slice(-30));
-                          setFuture([]);
-                          setSpec((s) => ({ ...s, revision: nextRevision() }));
-                        }
-                        dragStart.current = null;
-                      }}
-                    />
-                  </label>
-                  <p className="assumption">
-                    <span>STUDY ASSUMPTION</span>
-                    {spec.site.notes}
+                  <p className="site-next-step">
+                    Selecting a site starts local research and four design
+                    directions automatically.
                   </p>
                   <button
                     className="accent-button"
                     onClick={() => setTab('concepts')}
                   >
-                    Explore the concepts <ArrowRight size={16} />
+                    View concepts <ArrowRight size={16} />
                   </button>
+                  <details className="site-details">
+                    <summary>Site details & design brief</summary>
+                    <p>
+                      Long-axis bearing: {spec.site.rotation.toFixed(0)}°.
+                      Building footprint:{' '}
+                      {(spec.length * spec.width).toLocaleString()} m².
+                    </p>
+                    <label className="field-label">
+                      EDITABLE DESIGN BRIEF
+                      <textarea
+                        value={spec.brief}
+                        onFocus={() => {
+                          dragStart.current = clone(stateRef.current.spec);
+                        }}
+                        onChange={(e) =>
+                          setSpec((s) => ({ ...s, brief: e.target.value }))
+                        }
+                        onBlur={() => {
+                          if (
+                            dragStart.current &&
+                            dragStart.current.brief !==
+                              stateRef.current.spec.brief
+                          ) {
+                            const prev = dragStart.current;
+                            setPast((p) => [...p, prev].slice(-30));
+                            setFuture([]);
+                            setSpec((s) => ({
+                              ...s,
+                              revision: nextRevision(),
+                            }));
+                          }
+                          dragStart.current = null;
+                        }}
+                      />
+                    </label>
+                    <p className="assumption">
+                      <span>STUDY ASSUMPTION</span>
+                      {spec.site.notes}
+                    </p>
+                    <button
+                      className="outline-button"
+                      disabled={!past.length}
+                      onClick={() => history('undo')}
+                    >
+                      <Undo2 size={15} /> Undo last change
+                    </button>
+                  </details>
                 </aside>
               </div>
-              {isPortland && (
-                <div className="context-photos">
-                  {photos.map((p) => (
-                    <figure key={p.src}>
-                      <img src={p.src} alt={p.title} />
-                      <figcaption>
-                        <div>
-                          <h3>{p.title}</h3>
-                          <p>
-                            {p.caption} · Context reference, not the project
-                            site
-                          </p>
-                        </div>
-                        <a href={p.url} target="_blank" rel="noreferrer">
-                          {p.credit} <ExternalLink size={12} />
-                        </a>
-                      </figcaption>
-                    </figure>
-                  ))}
-                </div>
-              )}
-              <div className="section-heading">
-                <div>
-                  <div className="eyebrow">FROM EVIDENCE TO ARCHITECTURE</div>
-                  <h2>A brief with a point of view.</h2>
-                </div>
-                <span>
-                  {shownSources.length} SOURCES ·{' '}
-                  {spec.evidence?.length
-                    ? 'GENERATED RESEARCH'
-                    : 'CHECKED SEP 2026'}
-                </span>
-              </div>
-              {!spec.researchReady && (
-                <p className="inline-warning">
-                  Local research is pending. The Portland references are
-                  precedent material, not evidence about this new location.
-                </p>
-              )}
-              <div className="research-grid">
-                {shownSources.map((r) => (
-                  <article className="research-card" key={r.id}>
-                    <div className="section-kicker">
-                      {r.category}
-                      <span>{r.id}</span>
-                    </div>
-                    <h3>{r.title}</h3>
-                    <span className="evidence-label">
-                      {spec.evidence?.length
-                        ? 'CITED CONTEXT · REVIEW SOURCE'
-                        : 'VERIFIED CONTEXT'}
-                    </span>
-                    <p>{r.fact}</p>
-                    <div className="design-response">
-                      <span>DESIGN RESPONSE</span>
-                      <p>{r.response}</p>
-                      <small>{r.feature}</small>
-                    </div>
-                    <details>
-                      <summary>What still needs verification</summary>
-                      <p>{r.limitation}</p>
-                    </details>
-                    <a href={r.url} target="_blank" rel="noreferrer">
-                      {r.source}
-                      <ArrowUpRight size={14} />
-                    </a>
-                  </article>
-                ))}
-              </div>
-              <div className="impact-panel">
-                <div>
-                  <div className="eyebrow">
-                    A CLEAR ACCOUNT OF THE TRADEOFFS
+              <details className="site-research">
+                <summary>
+                  Research, local context & design impacts{' '}
+                  <span>{shownSources.length} sources</span>
+                </summary>
+                <button
+                  className="outline-button"
+                  onClick={() =>
+                    openGeneration(
+                      'research',
+                      `Research the selected site at ${spec.site.name}. Curate architectural history, materials, climate, landscape, surrounding buildings and community concerns into a cited design brief.`,
+                    )
+                  }
+                >
+                  <BookOpen size={15} />{' '}
+                  {spec.researchReady
+                    ? 'Extend the research'
+                    : 'Research this site'}
+                </button>
+                {isPortland && (
+                  <div className="context-photos">
+                    {photos.map((p) => (
+                      <figure key={p.src}>
+                        <img src={p.src} alt={p.title} />
+                        <figcaption>
+                          <div>
+                            <h3>{p.title}</h3>
+                            <p>
+                              {p.caption} · Context reference, not the project
+                              site
+                            </p>
+                          </div>
+                          <a href={p.url} target="_blank" rel="noreferrer">
+                            {p.credit} <ExternalLink size={12} />
+                          </a>
+                        </figcaption>
+                      </figure>
+                    ))}
                   </div>
-                  <h2>Good architecture does not erase impact.</h2>
-                  <p>
-                    These are proposed mitigations. None establish engineering
-                    performance or planning approval.
-                  </p>
+                )}
+                <div className="section-heading">
+                  <div>
+                    <div className="eyebrow">FROM EVIDENCE TO ARCHITECTURE</div>
+                    <h2>A brief with a point of view.</h2>
+                  </div>
+                  <span>
+                    {shownSources.length} SOURCES ·{' '}
+                    {spec.evidence?.length
+                      ? 'GENERATED RESEARCH'
+                      : 'CHECKED SEP 2026'}
+                  </span>
                 </div>
-                <div className="impact-grid">
-                  {impacts.map((i) => (
-                    <article key={i.name}>
-                      <h3>{i.name}</h3>
-                      <p>{i.proposal}</p>
-                      <small>Unresolved: {i.unresolved}</small>
+                {!spec.researchReady && (
+                  <p className="inline-warning">
+                    Local research is pending. The Portland references are
+                    precedent material, not evidence about this new location.
+                  </p>
+                )}
+                <div className="research-grid">
+                  {shownSources.map((r) => (
+                    <article className="research-card" key={r.id}>
+                      <div className="section-kicker">
+                        {r.category}
+                        <span>{r.id}</span>
+                      </div>
+                      <h3>{r.title}</h3>
+                      <span className="evidence-label">
+                        {spec.evidence?.length
+                          ? 'CITED CONTEXT · REVIEW SOURCE'
+                          : 'VERIFIED CONTEXT'}
+                      </span>
+                      <p>{r.fact}</p>
+                      <div className="design-response">
+                        <span>DESIGN RESPONSE</span>
+                        <p>{r.response}</p>
+                        <small>{r.feature}</small>
+                      </div>
+                      <details>
+                        <summary>What still needs verification</summary>
+                        <p>{r.limitation}</p>
+                      </details>
+                      <a href={r.url} target="_blank" rel="noreferrer">
+                        {r.source}
+                        <ArrowUpRight size={14} />
+                      </a>
                     </article>
                   ))}
                 </div>
-              </div>
+                <div className="impact-panel">
+                  <div>
+                    <div className="eyebrow">
+                      A CLEAR ACCOUNT OF THE TRADEOFFS
+                    </div>
+                    <h2>Good architecture does not erase impact.</h2>
+                    <p>
+                      These are proposed mitigations. None establish engineering
+                      performance or planning approval.
+                    </p>
+                  </div>
+                  <div className="impact-grid">
+                    {impacts.map((i) => (
+                      <article key={i.name}>
+                        <h3>{i.name}</h3>
+                        <p>{i.proposal}</p>
+                        <small>Unresolved: {i.unresolved}</small>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </details>
             </>
           )}
           {(tab === 'model' || tab === 'film') && (
@@ -1084,9 +1120,7 @@ export default function Studio() {
           {sceneMounted && (
             <div
               className={`model-layout ${tab === 'film' ? 'film-model-layout' : ''}`}
-              style={{
-                display: tab === 'model' || tab === 'film' ? 'grid' : 'none',
-              }}
+              hidden={tab !== 'model' && tab !== 'film'}
             >
               <div className="model-stage">
                 <Suspense
@@ -1116,18 +1150,21 @@ export default function Studio() {
                   <div className="model-view-switch">
                     <button
                       className={spec.view === 'perspective' ? 'active' : ''}
+                      aria-pressed={spec.view === 'perspective'}
                       onClick={() => commit({ ...spec, view: 'perspective' })}
                     >
                       <Move3D size={14} /> Orbit
                     </button>
                     <button
                       className={spec.view === 'entrance' ? 'active' : ''}
+                      aria-pressed={spec.view === 'entrance'}
                       onClick={() => commit({ ...spec, view: 'entrance' })}
                     >
                       <Footprints size={14} /> Walk
                     </button>
                     <button
                       className={spec.view === 'aerial' ? 'active' : ''}
+                      aria-pressed={spec.view === 'aerial'}
                       onClick={() => commit({ ...spec, view: 'aerial' })}
                     >
                       <Layers size={14} /> Aerial
@@ -1201,12 +1238,15 @@ export default function Studio() {
                   <p>
                     {element
                       ? 'The selected feature grounds your next voice instruction.'
-                      : 'Select a building element, or tell Placeform what to change.'}
+                      : 'Select a building element, or tell Watt & Wonder what to change.'}
                   </p>
                   <div className="lock-list">
                     {(Object.keys(featureLabels) as Feature[]).map((f) => (
                       <div className={element === f ? 'selected' : ''} key={f}>
-                        <button onClick={() => setElement(f)}>
+                        <button
+                          onClick={() => setElement(f)}
+                          aria-pressed={element === f}
+                        >
                           {featureLabels[f]}
                         </button>
                         <Tool
@@ -1352,6 +1392,7 @@ export default function Studio() {
                     {(Object.keys(viewNames) as View[]).map((v) => (
                       <button
                         className={spec.view === v ? 'active' : ''}
+                        aria-pressed={spec.view === v}
                         onClick={() => commit({ ...spec, view: v })}
                         key={v}
                       >
@@ -1497,88 +1538,106 @@ export default function Studio() {
             </Suspense>
           )}
         </div>
-        <footer className="studio-footer">
+        <footer
+          className={`studio-footer ${showVoiceDock ? '' : 'site-footer'}`}
+        >
           <span>
             <span className="status-dot" /> A PLACE-LED DESIGN STUDY
           </span>
-          <div className="voice-dock">
-            {message && (
-              <output className="voice-feedback">
-                <span>{message}</span>
+          {showVoiceDock ? (
+            <div className="voice-dock">
+              {message && (
+                <output className="voice-feedback">
+                  <span>{message}</span>
+                  <button
+                    aria-label="Dismiss feedback"
+                    onClick={() => setMessage('')}
+                  >
+                    <X size={13} />
+                  </button>
+                </output>
+              )}
+              <form
+                className="voice-bar"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  command(transcript);
+                }}
+              >
+                <button
+                  className="voice-history"
+                  type="button"
+                  aria-label="Conversation and editable transcript"
+                  onClick={() => setDialog('history')}
+                >
+                  <span className="voice-spark">✳</span>
+                </button>
+                <input
+                  ref={input}
+                  aria-label="Design instruction"
+                  placeholder={
+                    voiceState === 'listening'
+                      ? 'Listening. Tell me what to change…'
+                      : voiceState === 'thinking'
+                        ? 'Considering your design…'
+                        : voiceState === 'speaking'
+                          ? 'Watt & Wonder is speaking…'
+                          : 'Where should we take the design?'
+                  }
+                  value={transcript}
+                  onChange={(e) => setTranscript(e.target.value)}
+                />
+                <button
+                  className="send-command"
+                  type="submit"
+                  aria-label="Apply typed design command"
+                  disabled={!transcript.trim()}
+                >
+                  <Send size={15} />
+                </button>
+                <button
+                  className={
+                    ['listening', 'thinking', 'speaking'].includes(voiceState)
+                      ? 'listening'
+                      : ''
+                  }
+                  type="button"
+                  disabled={voiceState === 'connecting'}
+                  aria-label={
+                    ['listening', 'thinking', 'speaking'].includes(voiceState)
+                      ? 'Stop voice conversation'
+                      : 'Start voice conversation'
+                  }
+                  onClick={toggleVoice}
+                >
+                  {['listening', 'thinking', 'speaking'].includes(
+                    voiceState,
+                  ) ? (
+                    <MicOff size={20} />
+                  ) : (
+                    <Mic size={20} />
+                  )}
+                </button>
+              </form>
+              <span className="voice-availability">
+                {['listening', 'thinking', 'speaking'].includes(voiceState)
+                  ? 'OPENAI REALTIME · PAID API SESSION · 5 MIN LIMIT'
+                  : 'VOICE + TYPE · / TO FOCUS · ENTER TO APPLY'}
+              </span>
+            </div>
+          ) : (
+            message && (
+              <output className="site-notice">
+                {message}
                 <button
                   aria-label="Dismiss feedback"
                   onClick={() => setMessage('')}
                 >
-                  <X size={13} />
+                  <X size={14} />
                 </button>
               </output>
-            )}
-            <form
-              className="voice-bar"
-              onSubmit={(e) => {
-                e.preventDefault();
-                command(transcript);
-              }}
-            >
-              <button
-                className="voice-history"
-                type="button"
-                aria-label="Conversation and editable transcript"
-                onClick={() => setDialog('history')}
-              >
-                <span className="voice-spark">✳</span>
-              </button>
-              <input
-                ref={input}
-                aria-label="Design instruction"
-                placeholder={
-                  voiceState === 'listening'
-                    ? 'Listening. Tell me what to change…'
-                    : voiceState === 'thinking'
-                      ? 'Considering your design…'
-                      : voiceState === 'speaking'
-                        ? 'Placeform is speaking…'
-                        : 'Where should we take the design?'
-                }
-                value={transcript}
-                onChange={(e) => setTranscript(e.target.value)}
-              />
-              <button
-                className="send-command"
-                type="submit"
-                aria-label="Apply typed design command"
-                disabled={!transcript.trim()}
-              >
-                <Send size={15} />
-              </button>
-              <button
-                className={
-                  ['listening', 'thinking', 'speaking'].includes(voiceState)
-                    ? 'listening'
-                    : ''
-                }
-                type="button"
-                disabled={voiceState === 'connecting'}
-                aria-label={
-                  ['listening', 'thinking', 'speaking'].includes(voiceState)
-                    ? 'Stop voice conversation'
-                    : 'Start voice conversation'
-                }
-                onClick={toggleVoice}
-              >
-                {['listening', 'thinking', 'speaking'].includes(voiceState) ? (
-                  <MicOff size={20} />
-                ) : (
-                  <Mic size={20} />
-                )}
-              </button>
-            </form>
-            <span className="voice-availability">
-              {['listening', 'thinking', 'speaking'].includes(voiceState)
-                ? 'OPENAI REALTIME · PAID API SESSION · 5 MIN LIMIT'
-                : 'VOICE + TYPE · / TO FOCUS · ENTER TO APPLY'}
-            </span>
-          </div>
+            )
+          )}
           <span>
             R{String(spec.revision).padStart(2, '0')} ·{' '}
             {saveState.toUpperCase()}
@@ -1633,7 +1692,7 @@ export default function Studio() {
             </DialogTitle>
             <DialogDescription>
               {dialog === 'new'
-                ? 'Start from a real place, or return to a saved study.'
+                ? 'Find a place, then drag to select your site.'
                 : dialog === 'export'
                   ? `${spec.name} · revision ${spec.revision} · Schematic design`
                   : dialog === 'settings'
@@ -1645,34 +1704,15 @@ export default function Studio() {
             {dialog === 'new' && (
               <>
                 <label className="field-label">
-                  PROJECT NAME
+                  PROJECT NAME (OPTIONAL)
                   <input
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="Your new architectural study"
                   />
                 </label>
-                <label className="field-label">
-                  PLACE NAME
-                  <input
-                    value={newPlace}
-                    onChange={(e) => setNewPlace(e.target.value)}
-                    placeholder="Neighborhood, city, region"
-                  />
-                </label>
-                <label className="field-label">
-                  LATITUDE, LONGITUDE
-                  <input
-                    value={newCoords}
-                    onChange={(e) => setNewCoords(e.target.value)}
-                  />
-                </label>
-                <p className="fineprint">
-                  You can search any address and draw the site boundary on the
-                  map after creating the project.
-                </p>
                 <button className="accent-button" onClick={startNew}>
-                  Create project <ArrowRight size={15} />
+                  Choose site on map <ArrowRight size={15} />
                 </button>
                 <div className="saved-projects">
                   <h3>Saved studies</h3>
@@ -1928,8 +1968,8 @@ export default function Studio() {
                     ))
                   ) : (
                     <p className="muted">
-                      Tell Placeform what to change. Try “Use A’s massing, B’s
-                      facade, and C’s landscape.”
+                      Tell Watt & Wonder what to change. Try “Use A’s massing,
+                      B’s facade, and C’s landscape.”
                     </p>
                   )}
                   <div className="command-examples">

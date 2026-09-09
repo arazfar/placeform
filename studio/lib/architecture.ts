@@ -116,7 +116,7 @@ export function buildArchitecture(
     L = Math.max(30, s.length),
     W = Math.max(20, s.width);
   const root = new THREE.Group();
-  root.name = 'Placeform architecture';
+  root.name = 'Watt & Wonder architecture';
   root.userData.spec = { ...s };
   const resources = new Set<THREE.Material>();
   ownedMaterials.set(root, resources);
