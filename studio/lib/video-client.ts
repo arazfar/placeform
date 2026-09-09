@@ -13,19 +13,69 @@ export async function videoJSON<T>(
   init: RequestInit = {},
 ): Promise<T> {
   const res = await fetch(url, { ...init, cache: 'no-store' });
-  const data = (await res.json()) as {
-    error?: string;
-    code?: string;
-    uncertain?: boolean;
-  };
-  if (!res.ok)
+  let data: Record<string, unknown> | undefined;
+  try {
+    const value: unknown = await res.json();
+    if (value && typeof value === 'object' && !Array.isArray(value))
+      data = value as Record<string, unknown>;
+  } catch {
+    // Proxies and framework rejections may return plain text or HTML.
+  }
+  if (!res.ok) {
+    const structured = typeof data?.error === 'string';
     throw new VideoRequestError(
-      data.error || 'Video request failed.',
+      res.status === 413
+        ? 'The reference upload was rejected as too large. Image limit: 30 MiB.'
+        : structured
+          ? (data!.error as string)
+          : `Video request failed (HTTP ${res.status}).`,
       res.status,
-      data.code,
-      data.uncertain === true,
+      typeof data?.code === 'string' ? data.code : undefined,
+      data?.uncertain === true ||
+        (data?.uncertain !== false && res.status >= 500),
+    );
+  }
+  if (!data)
+    throw new VideoRequestError(
+      'The video service returned an unreadable response.',
+      res.status,
+      'invalid_response',
+      true,
     );
   return data as T;
+}
+
+export async function submitCinematic(
+  references: Blob[],
+  input: { prompt: string; seconds: number; expectedRate: string },
+  onUpload: (index: number) => void,
+  onSubmit: () => void,
+) {
+  const fileIds: string[] = [];
+  for (const [index, blob] of references.entries()) {
+    onUpload(index);
+    const uploaded = await videoJSON<{ id: string }>('/api/video', {
+      method: 'POST',
+      headers: { 'Content-Type': blob.type },
+      body: blob,
+    });
+    if (
+      typeof uploaded.id !== 'string' ||
+      !/^file[-_][\w-]+$/.test(uploaded.id)
+    )
+      throw new Error('The reference upload returned an invalid file ID.');
+    fileIds.push(uploaded.id);
+  }
+  onSubmit();
+  return videoJSON<import('./cinematic').ProviderJob>('/api/video', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...input,
+      firstFrame: fileIds[0],
+      lastFrame: fileIds[1],
+    }),
+  });
 }
 export async function imageForFilm(url: string): Promise<Blob> {
   const res = await fetch(url);

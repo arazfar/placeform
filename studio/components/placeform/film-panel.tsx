@@ -29,6 +29,7 @@ import {
 } from '@/lib/cinematic';
 import {
   imageForFilm,
+  submitCinematic,
   savedFilm,
   videoJSON,
   VideoRequestError,
@@ -473,43 +474,30 @@ export default function FilmPanel({
     persist((current) => [snapshot, ...current]);
     let submitted = false;
     try {
-      const fileIds: string[] = [];
-      for (const [index, blob] of [first, ...(last ? [last] : [])].entries()) {
-        setBusy(`Preparing reference ${index + 1}…`);
-        const form = new FormData();
-        form.set('file', blob, `${intentId}-${index}.png`);
-        const uploaded = await videoJSON<{ id: string }>('/api/video', {
-          method: 'POST',
-          body: form,
-        });
-        if (!/^file[-_][\w-]+$/.test(uploaded.id))
-          throw new Error('The reference upload returned an invalid file ID.');
-        fileIds.push(uploaded.id);
-      }
-      persist((current) =>
-        current.map((j) =>
-          j.id === intentId
-            ? {
-                ...j,
-                status: 'submitting',
-                createdAt: new Date().toISOString(),
-              }
-            : j,
-        ),
-      );
-      setBusy('Starting your cinematic…');
-      submitted = true;
-      const result = await videoJSON<ProviderJob>('/api/video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const result = await submitCinematic(
+        [first, ...(last ? [last] : [])],
+        {
           prompt: snapshot.prompt,
           seconds: snapshot.seconds,
-          firstFrame: fileIds[0],
-          lastFrame: fileIds[1],
           expectedRate: price.per_second,
-        }),
-      });
+        },
+        (index) => setBusy(`Preparing reference ${index + 1}…`),
+        () => {
+          persist((current) =>
+            current.map((j) =>
+              j.id === intentId
+                ? {
+                    ...j,
+                    status: 'submitting',
+                    createdAt: new Date().toISOString(),
+                  }
+                : j,
+            ),
+          );
+          setBusy('Starting your cinematic…');
+          submitted = true;
+        },
+      );
       if (!/^video_[\w-]+$/.test(result.id) || !result.status)
         throw new Error(
           'The provider returned an incomplete submission response.',
