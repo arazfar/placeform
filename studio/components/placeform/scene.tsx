@@ -752,6 +752,11 @@ export default function Scene({
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.shadowMap.type = THREE.PCFShadowMap;
         }}
+        fallback={
+          <span>
+            Interactive model. Use the camera and daylight controls to explore.
+          </span>
+        }
       >
         <RendererHealth onStatus={rendererStatus} />
         <Model
