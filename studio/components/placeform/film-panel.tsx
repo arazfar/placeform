@@ -126,6 +126,7 @@ export default function FilmPanel({
   reference,
   modelToolsVisible,
   onToggleModelTools,
+  onConnections,
   api,
   onMessage,
 }: {
@@ -133,6 +134,7 @@ export default function FilmPanel({
   reference: FilmReference;
   modelToolsVisible: boolean;
   onToggleModelTools: () => void;
+  onConnections: () => void;
   api: SceneAPI | undefined;
   onMessage: (s: string) => void;
 }) {
@@ -658,8 +660,7 @@ export default function FilmPanel({
           )}
         </div>
         <p className="fineprint">
-          The full image is preserved. Images with a different shape receive
-          black borders to fit 16:9.
+          Full reference image · Fitted to 16:9 without cropping
         </p>
         <div className="jobs">
           <div className="section-kicker">
@@ -676,7 +677,7 @@ export default function FilmPanel({
                 })
               }
             >
-              <RefreshCw size={13} /> Check job history
+              <RefreshCw size={13} /> Refresh history
             </button>
           </div>
           {cacheNotice && <p className="inline-warning">{cacheNotice}</p>}
@@ -739,7 +740,7 @@ export default function FilmPanel({
               {isUncertain(job) && (
                 <div>
                   <p className="inline-warning">
-                    This request may already be rendering. Check job history
+                    This request may already be rendering. Refresh history
                     before submitting again. If it remains unresolved, inspect
                     the AIand console.
                   </p>
@@ -781,16 +782,9 @@ export default function FilmPanel({
         </div>
       </div>
       <aside className="film-settings">
-        <div className="section-kicker">
-          CINEMATIC <span className="pill">AIAND</span>
-        </div>
-        <h3>Bring this image to life.</h3>
-        <p>
-          A {seconds}-second continuous shot. Gentle movement, realistic detail
-          and quiet natural ambience.
-        </p>
+        <h3>Shot settings</h3>
         <label className="field-label" htmlFor="cinematic-move">
-          CAMERA MOVEMENT
+          Camera movement
           <NativeSelect
             id="cinematic-move"
             value={move}
@@ -807,6 +801,41 @@ export default function FilmPanel({
             </NativeSelectOption>
           </NativeSelect>
         </label>
+        <label className="field-label">
+          Duration
+          <NativeSelect
+            disabled={!!busy}
+            value={seconds}
+            onChange={(e) => updateSettings(Number(e.target.value), move)}
+          >
+            {Array.from({ length: 12 }, (_, i) => i + 4).map((n) => (
+              <NativeSelectOption key={n} value={n}>
+                {n} seconds
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </label>
+        <div className="provider-card">
+          <div>
+            <span>AIand</span>
+            <small>{seconds}s · 16:9 · 768p</small>
+          </div>
+
+          <output>
+            {checking
+              ? 'Checking video connection…'
+              : (connectionError || readiness)?.includes('AIAND_API_KEY')
+                ? 'Connect AIand to generate films.'
+                : connectionError || readiness || 'Ready to generate'}
+          </output>
+          {(connectionError || readiness) && !checking && (
+            <p>
+              <button className="text-link" onClick={onConnections}>
+                Connection settings <ArrowUpRight size={14} />
+              </button>
+            </p>
+          )}
+        </div>
         {issue && <p className="inline-warning">{issue}</p>}
         {actionError && (
           <p className="inline-warning" role="alert">
@@ -839,29 +868,6 @@ export default function FilmPanel({
             <Progress value={busy.includes('Recording') ? progress : null} />
           </div>
         )}
-        <div className="provider-card">
-          <div>
-            <span>{referenceLabel}</span>
-            <small>{seconds} seconds · 16:9 · 768p · MP4</small>
-          </div>
-          <p>Quiet natural ambience · no music</p>
-          <output>
-            {checking
-              ? 'Checking video connection…'
-              : connectionError || readiness || 'Ready to generate'}
-          </output>
-          {(connectionError || readiness) && !checking && (
-            <p>
-              <a
-                href="https://console.aiand.com/video"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open AIand settings <ArrowUpRight size={12} />
-              </a>
-            </p>
-          )}
-        </div>
         <p className="fineprint">
           Each click starts one take. Completed films are saved in this browser
           while Film is open; download an MP4 to keep your own copy. AIand
@@ -869,20 +875,6 @@ export default function FilmPanel({
         </p>
         <details className="cinematic-advanced">
           <summary>Advanced controls</summary>
-          <label className="field-label">
-            DURATION
-            <NativeSelect
-              disabled={!!busy}
-              value={seconds}
-              onChange={(e) => updateSettings(Number(e.target.value), move)}
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 4).map((n) => (
-                <NativeSelectOption key={n} value={n}>
-                  {n} seconds
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </label>
           <label className="field-label">
             SHOT PROMPT
             <textarea

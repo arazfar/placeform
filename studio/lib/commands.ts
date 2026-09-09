@@ -242,7 +242,7 @@ export function executeAction(s: BuildingSpec, a: DesignAction): ActionResult {
     Object.assign(n, { [p]: Math.round(a.value * 100) / 100 });
     return {
       spec: n,
-      message: `${p === 'finDepth' ? 'Facade fin depth' : p === 'canopyDepth' ? 'Canopy depth' : p} updated to ${a.value}${p === 'hour' ? ':00' : ' m'}.`,
+      message: `${p === 'finDepth' ? 'Facade fin depth' : p === 'canopyDepth' ? 'Canopy depth' : p === 'hour' ? 'Daylight' : p} updated to ${a.value}${p === 'hour' ? ':00' : ' m'}.`,
     };
   }
   return {
@@ -281,6 +281,11 @@ export function parseCommand(
     if (match) mix[f] = match[1].toUpperCase() as ConceptId;
   }
   if (Object.keys(mix).length > 1) return mix;
+  const daylight = t.match(
+    /\b(?:daylight|hour|time)\s+(?:to\s+|at\s+)?(\d+(?:\.\d+)?)(?::00)?\b/,
+  );
+  if (daylight)
+    return { type: 'set', parameter: 'hour', value: Number(daylight[1]) };
   if (/show|view|sunset|dusk|aerial|daylight/.test(t)) {
     const view: View = /entrance/.test(t)
       ? 'entrance'

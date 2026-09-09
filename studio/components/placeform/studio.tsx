@@ -31,12 +31,10 @@ import {
   Download,
   Upload,
   ExternalLink,
-  ChevronDown,
   History,
   Settings2,
   X,
   Sun,
-  Move3D,
   Footprints,
   Image as ImageIcon,
   FileJson,
@@ -88,7 +86,7 @@ import { sources, photos, impacts } from '@/lib/research';
 import { siteArea, siteAt } from '@/lib/site';
 import { drawingSVG, sheets, type SheetId } from '@/lib/drawings';
 import { drawingPDF, reviewPackage, taskPackage } from '@/lib/exports';
-import type { SceneAPI } from './scene';
+import type { SceneAPI, SceneStatus } from './scene';
 import { moodBoardUrl, withinPresidio } from '@/lib/presidio';
 import { loadMedia, saveMedia } from '@/lib/media-store';
 import { freshSiteDesign } from '@/lib/site-workflow';
@@ -118,7 +116,7 @@ function Tool({
   children,
   onClick,
   disabled = false,
-  active = false,
+  active,
 }: {
   label: string;
   children: React.ReactNode;
@@ -132,6 +130,7 @@ function Tool({
         render={
           <button
             aria-label={label}
+            aria-pressed={active}
             className={`tool-button ${active ? 'active' : ''}`}
             onClick={onClick}
             disabled={disabled}
@@ -168,6 +167,8 @@ export default function Studio() {
       voiceModel: string;
     } | null>(null),
     [sceneAPI, setSceneAPI] = useState<SceneAPI>(),
+    [sceneStatus, setSceneStatus] = useState<SceneStatus>('loading'),
+    [commandsOpen, setCommandsOpen] = useState(false),
     [sceneMounted, setSceneMounted] = useState(false),
     [filmModelVisible, setFilmModelVisible] = useState(false),
     [walk, setWalk] = useState(false),
@@ -188,6 +189,11 @@ export default function Studio() {
       title: string;
     } | null>(null),
     [, setCustomSources] = useState<typeof sources>([]);
+  const dialogOpener = useRef<HTMLElement | null>(null);
+  function openDialog(value: typeof dialog) {
+    dialogOpener.current = document.activeElement as HTMLElement;
+    setDialog(value);
+  }
   const projectWrites = useRef(Promise.resolve());
   const dragStart = useRef<BuildingSpec | null>(null);
   const stateRef = useRef({ spec, past, future, element });
@@ -197,8 +203,27 @@ export default function Studio() {
     input = useRef<HTMLInputElement>(null);
   const onSceneReady = useCallback((api: SceneAPI) => {
     setSceneAPI(api);
+    setSceneStatus('ready');
     if (import.meta.env.DEV) window.__PLACEFORM_SCENE = api;
   }, []);
+  const onSceneStatus = useCallback((status: SceneStatus) => {
+    setSceneStatus(status);
+    if (status !== 'ready') {
+      setSceneAPI(undefined);
+      setWalk(false);
+      if (import.meta.env.DEV) delete window.__PLACEFORM_SCENE;
+    }
+  }, []);
+  const sceneReady = sceneStatus === 'ready' && !!sceneAPI;
+  const commandTrigger = useRef<HTMLButtonElement>(null);
+  const evidenceSection = useRef<HTMLDetailsElement>(null);
+  const openCommands = useCallback(() => {
+    setCommandsOpen(true);
+    requestAnimationFrame(() => input.current?.focus());
+  }, []);
+  useEffect(() => {
+    if (commandsOpen) input.current?.focus();
+  }, [commandsOpen]);
   const projectConcepts = demoConcepts;
   const c = projectConcepts.find((c) => c.id === selected)!,
     activeConcept = projectConcepts.find((c) => c.id === spec.concept)!;
@@ -332,6 +357,8 @@ export default function Studio() {
     const old = stateRef.current.spec;
     if (old.concept !== next.concept) {
       setSceneAPI(undefined);
+      setSceneStatus('loading');
+      setWalk(false);
       setElement(undefined);
     }
     if (
@@ -452,7 +479,7 @@ export default function Studio() {
       return;
     }
     if (!capabilities?.voice) {
-      setDialog('settings');
+      openDialog('settings');
       notify(
         'OpenAI voice needs a server API key. You can type design commands now.',
       );
@@ -487,22 +514,26 @@ export default function Studio() {
       if (
         (e.metaKey || e.ctrlKey) &&
         e.key.toLowerCase() === 'z' &&
-        !(e.target as HTMLElement).matches('input,textarea')
+        !(e.target as HTMLElement).closest(
+          'input,textarea,select,[contenteditable=true],[role=dialog]',
+        )
       ) {
         e.preventDefault();
         history(e.shiftKey ? 'redo' : 'undo');
       }
       if (
         e.key === '/' &&
-        !(e.target as HTMLElement).matches('input,textarea')
+        !(e.target as HTMLElement).closest(
+          'input,textarea,select,[contenteditable=true],[role=dialog]',
+        )
       ) {
         e.preventDefault();
-        input.current?.focus();
+        openCommands();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [openCommands]);
   async function work(label: string, fn: () => Promise<void>) {
     if (busy) return;
     setBusy(label);
@@ -680,51 +711,65 @@ export default function Studio() {
             </span>
             placeform<span className="beta">STUDIO</span>
           </a>
-          <button
-            className="project-title"
-            onClick={() => setDialog('history')}
-          >
+          <div className="project-title">
             <span className="project-dot" />
-            {spec.name}
-            <span className="muted"> / </span>
-            <span className="muted">
-              {spec.site.location === 'Portland, Oregon'
-                ? 'Portland, OR'
-                : spec.site.name.split(',')[0]}
-            </span>
-            <ChevronDown size={12} />
-          </button>
+            <span>{spec.name}</span>
+            <span className="muted">{spec.site.name.split(',')[0]}</span>
+          </div>
           <div className="top-actions">
-            <span
+            <output
               className={`saved ${saveState === 'Save failed' ? 'error' : ''}`}
             >
-              <Check size={13} />
+              {saveState === 'Saved locally' ? (
+                <Check size={14} />
+              ) : saveState === 'Save failed' ? (
+                <X size={14} />
+              ) : (
+                <span className="spinner" />
+              )}
               {saveState}
-            </span>
-            <button className="dark-button" onClick={() => setDialog('export')}>
+            </output>
+            <button
+              className="plain history-trigger"
+              aria-label="History"
+              onClick={() => openDialog('history')}
+            >
+              <History size={16} /> History
+            </button>
+            <button
+              className="outline-button"
+              onClick={() => openDialog('export')}
+            >
               Export <ArrowUpRight size={15} />
             </button>
           </div>
         </header>
         <div className="stage-bar">
-          <div className="stage-caption">
-            <span className="tiny-number">01—04</span> YOUR DESIGN PROCESS
-          </div>
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="stage-tabs">
-              {stages.map(({ id, label, icon: Icon }, i) => (
+              {stages.map(({ id, label, icon: Icon }) => (
                 <TabsTrigger value={id} key={id}>
                   <Icon size={16} />
                   {label}
-                  <span>0{i + 1}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
-          <span className="schematic">SCHEMATIC DESIGN</span>
+          <div className="stage-utilities">
+            <button
+              className="plain command-trigger"
+              aria-label="Commands"
+              ref={commandTrigger}
+              onClick={openCommands}
+              aria-expanded={tab === 'model' || commandsOpen}
+              aria-controls="studio-commands"
+            >
+              <Send size={15} /> Commands <kbd>/</kbd>
+            </button>
+          </div>
           <Tool
             label="Connections & voice"
-            onClick={() => setDialog('settings')}
+            onClick={() => openDialog('settings')}
           >
             <Settings2 size={16} />
           </Tool>
@@ -741,84 +786,15 @@ export default function Studio() {
                         ? spec.site.location.toUpperCase()
                         : 'PREPARED PRECEDENTS · GENERATE YOUR LOCAL DIRECTIONS'}
                   </div>
-                  <h1>Four ways to belong.</h1>
+                  <h1>Explore the concepts</h1>
                 </div>
-                <p>
-                  One place. Four architectural directions.
-                  <br />
-                  Explore each direction in three dimensions.
-                </p>
-              </div>
-              <div className="concept-layout">
-                <div className="image-stage">
-                  <img
-                    src={conceptImage(spec, selected)}
-                    alt={`${c.name}, a speculative data-center exterior concept`}
-                  />
-                  <span className="image-chip">
-                    CONCEPT {c.id}
-                    <span />
-                    PERSPECTIVE STUDY
-                  </span>
-                  <button
-                    className="image-expand"
-                    title="View in 3D"
-                    aria-label="View in 3D"
-                    onClick={developSelected}
-                  >
-                    <Box size={17} />
-                  </button>
-                  <div className="image-bottom">
-                    <span>
-                      {spec.site.center[1].toFixed(4)}°,{' '}
-                      {spec.site.center[0].toFixed(4)}° · REFERENCE STUDY
-                    </span>
-                    <span>{'Concept reference'} · Design intent</span>
-                  </div>
-                </div>
-                <aside className="concept-info">
-                  <div className="section-kicker">
-                    DIRECTION {c.id}
-                    <span className="pill">
-                      {spec.concept === selected
-                        ? 'CURRENT DIRECTION'
-                        : 'EXPLORING'}
-                    </span>
-                  </div>
-                  <h2>{c.name}</h2>
-                  <p className="concept-subtitle">{c.subtitle}</p>
-                  <p>{c.description}</p>
-                  <div className="material-palette">
-                    {c.colors.map((color, i) => (
-                      <div key={color}>
-                        <span style={{ background: color }} />
-                        <small>{c.materials[i]}</small>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="info-rule">
-                    <h3>Rooted in this place</h3>
-                    <p>{c.inspiration}</p>
-                    <button
-                      className="text-link"
-                      onClick={() => setTab('place')}
-                    >
-                      Trace the local evidence <ArrowUpRight size={12} />
-                    </button>
-                  </div>
-                  <div className="tradeoff">
-                    <span>DESIGN CONSIDERATION</span>
-                    <p>{c.tradeoff}</p>
-                  </div>
-                  <button className="accent-button" onClick={developSelected}>
-                    {'View in 3D'} <ArrowRight size={17} />
-                  </button>
-                </aside>
+                <p>Four directions for {spec.site.name.split(',')[0]}.</p>
               </div>
               <div className="concept-strip">
                 {projectConcepts.map((d) => (
                   <button
                     className={`concept-tile ${selected === d.id ? 'selected' : ''}`}
+                    aria-pressed={selected === d.id}
                     onClick={() => {
                       setSelected(d.id);
                       commit(fixedDemoSpec(spec, d.id));
@@ -837,10 +813,49 @@ export default function Studio() {
                   </button>
                 ))}
               </div>
+              <div className="concept-layout">
+                <div className="image-stage">
+                  <img
+                    src={conceptImage(spec, selected)}
+                    alt={`${c.name}, a speculative data-center exterior concept`}
+                  />
+                </div>
+                <aside className="concept-info">
+                  <div className="section-kicker">
+                    Concept {c.id}
+                    <span className="pill">Selected</span>
+                  </div>
+                  <h2>{c.name}</h2>
+                  <p>{c.description}</p>
+                  <button className="accent-button" onClick={developSelected}>
+                    View in 3D <ArrowRight size={17} />
+                  </button>
+                  <h3 className="inspector-label">Materials</h3>
+                  <div className="material-palette">
+                    {c.colors.map((color, i) => (
+                      <div key={color}>
+                        <span style={{ background: color }} />
+                        <small>{c.materials[i]}</small>
+                      </div>
+                    ))}
+                  </div>
+                  <details className="context-details">
+                    <summary>Context & limitations</summary>
+                    <p>{c.inspiration}</p>
+                    <p>{c.tradeoff}</p>
+                    <button
+                      className="text-link"
+                      onClick={() => setTab('place')}
+                    >
+                      View site context <ArrowUpRight size={14} />
+                    </button>
+                  </details>
+                </aside>
+              </div>
               <div className="under-gallery">
                 <span>
-                  Approximate scale · {spec.length} × {spec.width} m envelope ·
-                  comparable viewpoints
+                  Conceptual exterior study · Approximate envelope {spec.length}{' '}
+                  × {spec.width} m
                 </span>
               </div>
             </>
@@ -849,7 +864,7 @@ export default function Studio() {
             <>
               <div className="workspace-heading">
                 <div>
-                  <div className="eyebrow">01 / THE PLACE COMES FIRST</div>
+                  <div className="eyebrow">Site context</div>
                   <h1>
                     {isPortland
                       ? 'The working edge of Portland.'
@@ -859,18 +874,17 @@ export default function Studio() {
                 <button
                   className="outline-button"
                   onClick={() => {
-                    openGeneration(
-                      'research',
-                      `Research the geofence at ${spec.site.name}. Curate architectural history, materials, climate, landscape, surrounding buildings and community concerns into a cited design brief.`,
-                    );
+                    if (evidenceSection.current) {
+                      evidenceSection.current.open = true;
+                      evidenceSection.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      });
+                      evidenceSection.current.querySelector('summary')?.focus();
+                    }
                   }}
                 >
-                  <BookOpen size={15} />{' '}
-                  {spec.researchReady
-                    ? spec.demoContext
-                      ? 'Prepared research'
-                      : 'Extend the research'
-                    : 'Research this place'}
+                  <BookOpen size={15} /> Prepared research
                 </button>
               </div>
               <div className="place-layout">
@@ -896,8 +910,14 @@ export default function Studio() {
                   <div className="section-kicker">
                     THE STUDY SITE <MapPin size={14} />
                   </div>
-                  <h2>{spec.site.name.split(',')[0]}</h2>
+                  <h2>Study brief</h2>
                   <p>{spec.site.location}</p>
+                  <button
+                    className="accent-button"
+                    onClick={() => setTab('concepts')}
+                  >
+                    Explore concepts <ArrowRight size={16} />
+                  </button>
                   <div className="site-stats">
                     <div>
                       <strong>
@@ -916,6 +936,10 @@ export default function Studio() {
                       <small>Long-axis bearing</small>
                     </div>
                   </div>
+                  <p className="fineprint">
+                    Building footprint ·{' '}
+                    {(spec.length * spec.width).toLocaleString()} m²
+                  </p>
                   <label className="field-label">
                     EDITABLE DESIGN BRIEF
                     <textarea
@@ -945,12 +969,6 @@ export default function Studio() {
                     <span>STUDY ASSUMPTION</span>
                     {spec.site.notes}
                   </p>
-                  <button
-                    className="accent-button"
-                    onClick={() => setTab('concepts')}
-                  >
-                    Explore the concepts <ArrowRight size={16} />
-                  </button>
                 </aside>
               </div>
               {isPortland && (
@@ -974,88 +992,85 @@ export default function Studio() {
                   ))}
                 </div>
               )}
-              <div className="section-heading">
-                <div>
-                  <div className="eyebrow">FROM EVIDENCE TO ARCHITECTURE</div>
-                  <h2>A brief with a point of view.</h2>
-                </div>
-                <span>
-                  {shownSources.length} SOURCES ·{' '}
-                  {spec.demoContext
-                    ? 'PREPARED BOARD CONTEXT'
-                    : spec.evidence?.length
-                      ? 'GENERATED RESEARCH'
-                      : 'CHECKED SEP 2026'}
-                </span>
-              </div>
-              {!spec.researchReady && (
-                <p className="inline-warning">
-                  Local research is pending. Precedent material is not evidence
-                  about this location.
-                </p>
-              )}
-              {spec.demoContext && (
-                <p>
-                  <a href={moodBoardUrl} target="_blank" rel="noreferrer">
-                    Watt Wonder / Presidio inspiration board ↗
-                  </a>{' '}
-                  · Prepared September 2026; parcel conditions are unverified.
-                </p>
-              )}
-              {spec.demoContext === 'presidio' && <ContextGallery />}
-              <div className="research-grid">
-                {shownSources.map((r) => (
-                  <article className="research-card" key={r.id}>
-                    <div className="section-kicker">
-                      {r.category}
-                      <span>{r.id}</span>
-                    </div>
-                    <h3>{r.title}</h3>
-                    <span className="evidence-label">
-                      {spec.demoContext
-                        ? 'BOARD SYNTHESIS · INTERPRETATION'
-                        : spec.evidence?.length
-                          ? 'CITED CONTEXT · REVIEW SOURCE'
-                          : 'VERIFIED CONTEXT'}
-                    </span>
-                    <p>{r.fact}</p>
-                    <div className="design-response">
-                      <span>DESIGN RESPONSE</span>
-                      <p>{r.response}</p>
-                      <small>{r.feature}</small>
-                    </div>
-                    <details>
-                      <summary>What still needs verification</summary>
-                      <p>{r.limitation}</p>
-                    </details>
-                    <a href={r.url} target="_blank" rel="noreferrer">
-                      {r.source}
-                      <ArrowUpRight size={14} />
-                    </a>
-                  </article>
-                ))}
-              </div>
-              <div className="impact-panel">
-                <div>
-                  <div className="eyebrow">
-                    A CLEAR ACCOUNT OF THE TRADEOFFS
-                  </div>
-                  <h2>Good architecture does not erase impact.</h2>
-                  <p>
-                    These are proposed mitigations. None establish engineering
-                    performance or planning approval.
+              <details className="place-section" ref={evidenceSection}>
+                <summary>
+                  Research & evidence <span>{shownSources.length} sources</span>
+                </summary>
+                {!spec.researchReady && (
+                  <p className="inline-warning">
+                    Local research is pending. Precedent material is not
+                    evidence about this location.
                   </p>
-                </div>
-                <div className="impact-grid">
-                  {impacts.map((i) => (
-                    <article key={i.name}>
-                      <h3>{i.name}</h3>
-                      <p>{i.proposal}</p>
-                      <small>Unresolved: {i.unresolved}</small>
+                )}
+                {spec.demoContext && (
+                  <p>
+                    <a href={moodBoardUrl} target="_blank" rel="noreferrer">
+                      Watt Wonder / Presidio inspiration board ↗
+                    </a>{' '}
+                    · Prepared September 2026; parcel conditions are unverified.
+                  </p>
+                )}
+                <details className="reference-section">
+                  <summary>Architectural references</summary>
+                  {spec.demoContext === 'presidio' && <ContextGallery />}
+                </details>
+                <div className="research-grid">
+                  {shownSources.map((r) => (
+                    <article className="research-card" key={r.id}>
+                      <div className="section-kicker">
+                        {r.category}
+                        <span>{r.id}</span>
+                      </div>
+                      <h3>{r.title}</h3>
+                      <span className="evidence-label">
+                        {spec.demoContext
+                          ? 'BOARD SYNTHESIS · INTERPRETATION'
+                          : spec.evidence?.length
+                            ? 'CITED CONTEXT · REVIEW SOURCE'
+                            : 'VERIFIED CONTEXT'}
+                      </span>
+                      <p>{r.fact}</p>
+                      <div className="design-response">
+                        <span>DESIGN RESPONSE</span>
+                        <p>{r.response}</p>
+                        <small>{r.feature}</small>
+                      </div>
+                      <details>
+                        <summary>What still needs verification</summary>
+                        <p>{r.limitation}</p>
+                      </details>
+                      <a href={r.url} target="_blank" rel="noreferrer">
+                        {r.source}
+                        <ArrowUpRight size={14} />
+                      </a>
                     </article>
                   ))}
                 </div>
-              </div>
+              </details>
+              <details className="place-section">
+                <summary>Unresolved impacts</summary>
+                <div className="impact-panel">
+                  <div>
+                    <div className="eyebrow">
+                      A CLEAR ACCOUNT OF THE TRADEOFFS
+                    </div>
+                    <h2>Good architecture does not erase impact.</h2>
+                    <p>
+                      These are proposed mitigations. None establish engineering
+                      performance or planning approval.
+                    </p>
+                  </div>
+                  <div className="impact-grid">
+                    {impacts.map((i) => (
+                      <article key={i.name}>
+                        <h3>{i.name}</h3>
+                        <p>{i.proposal}</p>
+                        <small>Unresolved: {i.unresolved}</small>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </details>
             </>
           )}
           {(tab === 'model' || tab === 'film') && (
@@ -1063,40 +1078,47 @@ export default function Studio() {
               <div>
                 <div className="eyebrow">
                   {tab === 'model'
-                    ? '03 / THE ARCHITECTURE, RESOLVED'
-                    : '04 / PRESENT THE DESIGN'}{' '}
-                  · REVISION {String(spec.revision).padStart(2, '0')}
+                    ? '3D model'
+                    : `Film · ${activeConcept.name}`}
                 </div>
                 <h1>
-                  {tab === 'model'
-                    ? activeConcept.name
-                    : 'A building, experienced.'}
+                  {tab === 'model' ? activeConcept.name : 'Create a film'}
                 </h1>
               </div>
               <div className="heading-tools">
-                <span className="revision-tag">
-                  {spec.length} × {spec.width} × {spec.height} m
-                </span>
-                <Tool
-                  label="Undo design change"
-                  disabled={!past.length}
-                  onClick={() => history('undo')}
-                >
-                  <Undo2 size={17} />
-                </Tool>
-                <Tool
-                  label="Redo design change"
-                  disabled={!future.length}
-                  onClick={() => history('redo')}
-                >
-                  <Redo2 size={17} />
-                </Tool>
-                <Tool
-                  label="Design history"
-                  onClick={() => setDialog('history')}
-                >
-                  <History size={17} />
-                </Tool>
+                {tab === 'model' && (
+                  <>
+                    <span className="revision-tag">
+                      {spec.length} × {spec.width} × {spec.height} m
+                    </span>
+                    <Tool
+                      label="Undo design change"
+                      disabled={!past.length}
+                      onClick={() => history('undo')}
+                    >
+                      <Undo2 size={17} />
+                    </Tool>
+                    <Tool
+                      label="Redo design change"
+                      disabled={!future.length}
+                      onClick={() => history('redo')}
+                    >
+                      <Redo2 size={17} />
+                    </Tool>
+                    <Tool
+                      label="Design history"
+                      onClick={() => openDialog('history')}
+                    >
+                      <History size={17} />
+                    </Tool>
+                    <button
+                      className="accent-button"
+                      onClick={() => setTab('film')}
+                    >
+                      Create film <ArrowRight size={16} />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -1119,7 +1141,9 @@ export default function Studio() {
                   }
                 >
                   <Scene
+                    key={spec.concept}
                     spec={spec}
+                    onStatus={onSceneStatus}
                     onSelect={(f) => {
                       setElement(f);
                       notify(
@@ -1130,35 +1154,24 @@ export default function Studio() {
                     walk={walk}
                   />
                 </Suspense>
-                <div className="model-top-controls">
-                  <span className="image-chip">
-                    LIVE MODEL
-                    <span />R{String(spec.revision).padStart(2, '0')}
-                  </span>
-                  <div className="model-view-switch">
+                {sceneReady && (
+                  <div className="model-top-controls">
+                    <span className="image-chip">{viewNames[spec.view]}</span>
+                  </div>
+                )}
+                {sceneStatus === 'unavailable' && (
+                  <div className="scene-recovery">
                     <button
-                      className={spec.view === 'perspective' ? 'active' : ''}
-                      onClick={() => commit({ ...spec, view: 'perspective' })}
+                      className="outline-button"
+                      onClick={() => setTab('concepts')}
                     >
-                      <Move3D size={14} /> Orbit
-                    </button>
-                    <button
-                      className={spec.view === 'entrance' ? 'active' : ''}
-                      onClick={() => commit({ ...spec, view: 'entrance' })}
-                    >
-                      <Footprints size={14} /> Walk
-                    </button>
-                    <button
-                      className={spec.view === 'aerial' ? 'active' : ''}
-                      onClick={() => commit({ ...spec, view: 'aerial' })}
-                    >
-                      <Layers size={14} /> Aerial
+                      Back to concepts <ArrowRight size={15} />
                     </button>
                   </div>
-                </div>
+                )}
                 <div className="model-tools">
                   <Tool
-                    label="Compare approved concept"
+                    label="Compare concept reference"
                     active={compare}
                     onClick={() => setCompare((v) => !v)}
                   >
@@ -1166,6 +1179,7 @@ export default function Studio() {
                   </Tool>
                   <Tool
                     label="Save presentation view"
+                    disabled={!sceneReady}
                     onClick={() =>
                       work('Capturing presentation view…', async () => {
                         if (sceneAPI)
@@ -1178,7 +1192,11 @@ export default function Studio() {
                   >
                     <Download size={17} />
                   </Tool>
-                  <Tool label="Reset camera" onClick={() => sceneAPI?.reset()}>
+                  <Tool
+                    label="Reset camera"
+                    disabled={!sceneReady}
+                    onClick={() => sceneAPI?.reset()}
+                  >
                     <RotateCcw size={17} />
                   </Tool>
                 </div>
@@ -1199,50 +1217,70 @@ export default function Studio() {
                     </button>
                   </div>
                 )}
-                <div className="model-caption">
-                  <span>
-                    {walk
-                      ? 'WASD / ARROWS to walk · drag to look'
-                      : 'Drag to orbit · scroll to zoom · click an element'}
-                  </span>
-                  <span>+X east · +Z south · metres</span>
-                </div>
-                <div className="model-compass">
-                  <span>N</span>
-                  <Compass size={28} />
-                </div>
+                {sceneReady && (
+                  <>
+                    <div className="model-caption">
+                      <span>
+                        {walk
+                          ? 'WASD / ARROWS to walk · drag to look'
+                          : 'Drag to orbit · scroll to zoom · click an element'}
+                      </span>
+                      <span>+X east · +Z south · metres</span>
+                    </div>
+                    <div className="model-compass">
+                      <span>N</span>
+                      <Compass size={28} />
+                    </div>
+                  </>
+                )}
               </div>
               {tab === 'model' && (
                 <aside className="model-inspector">
-                  <div className="section-kicker">
-                    REFERENCE MODEL <Box size={15} />
-                  </div>
-                  <h2>{activeConcept.name}</h2>
-                  <p>
-                    {element
-                      ? `Selected: ${featureLabels[element]}.`
-                      : activeConcept.description}
-                  </p>
-                  <p className="fineprint">
-                    Approximate exterior reconstructed from one image. Hidden
-                    geometry and dimensions are inferred.
-                  </p>
-                  <div className="view-buttons">
-                    {projectConcepts.map((direction) => (
-                      <button
-                        key={direction.id}
-                        className={
-                          spec.concept === direction.id ? 'active' : ''
-                        }
-                        onClick={() => {
-                          setSelected(direction.id);
-                          commit(fixedDemoSpec(spec, direction.id));
-                        }}
-                      >
-                        {direction.id} · {direction.name}
-                      </button>
-                    ))}
-                  </div>
+                  <label className="field-label">
+                    Direction
+                    <select
+                      value={spec.concept}
+                      onChange={(e) => {
+                        const id = e.target.value as ConceptId;
+                        setSelected(id);
+                        commit(fixedDemoSpec(spec, id));
+                      }}
+                    >
+                      {projectConcepts.map((direction) => (
+                        <option key={direction.id} value={direction.id}>
+                          {direction.id} · {direction.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field-label">
+                    Camera
+                    <select
+                      value={spec.view}
+                      disabled={!sceneReady}
+                      onChange={(e) => {
+                        setWalk(false);
+                        commit({ ...spec, view: e.target.value as View });
+                      }}
+                    >
+                      {(Object.keys(viewNames) as View[]).map((v) => (
+                        <option value={v} key={v}>
+                          {viewNames[v]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {spec.view === 'entrance' && (
+                    <button
+                      className={`outline-button ${walk ? 'active' : ''}`}
+                      disabled={!sceneReady}
+                      aria-pressed={walk}
+                      onClick={() => setWalk(!walk)}
+                    >
+                      <Footprints size={16} />
+                      {walk ? 'Stop walking' : 'Walk through model'}
+                    </button>
+                  )}
                   <div className="daylight-control">
                     <label>
                       <Sun size={15} /> Daylight{' '}
@@ -1250,6 +1288,7 @@ export default function Studio() {
                     </label>
                     <Slider
                       aria-label="Daylight hour"
+                      disabled={!sceneReady}
                       value={[spec.hour]}
                       min={6}
                       max={21}
@@ -1277,46 +1316,24 @@ export default function Studio() {
                       <span>21:00</span>
                     </div>
                   </div>
-                  <div className="view-buttons">
-                    {(Object.keys(viewNames) as View[]).map((v) => (
-                      <button
-                        className={spec.view === v ? 'active' : ''}
-                        onClick={() => commit({ ...spec, view: v })}
-                        key={v}
-                      >
-                        {viewNames[v]}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    className={`outline-button ${walk ? 'active' : ''}`}
-                    onClick={() => {
-                      setWalk(!walk);
-                      if (!walk) commit({ ...spec, view: 'entrance' });
-                    }}
-                  >
-                    <Footprints size={14} />
-                    {walk
-                      ? 'Leave pedestrian navigation'
-                      : 'Enable pedestrian navigation'}
-                  </button>
-                  <p className="fineprint">
-                    Equipment and concealed construction are schematic. Solar
-                    time is illustrative; this is not a solar or acoustic
-                    analysis.
-                  </p>
+                  {element && (
+                    <p className="selected-feature">
+                      Selected: {featureLabels[element]}
+                    </p>
+                  )}
+                  <details className="context-details">
+                    <summary>About this model</summary>
+                    <p>
+                      Approximate exterior based on the concept reference.
+                      Hidden geometry and dimensions are inferred.
+                    </p>
+                    <p>
+                      Equipment and concealed construction are schematic.
+                      Daylight is illustrative, not a solar analysis.
+                    </p>
+                  </details>
                 </aside>
               )}
-            </div>
-          )}
-          {tab === 'model' && (
-            <div className="model-bottom">
-              <span>
-                Reference-based exterior study · fixed concept geometry
-              </span>
-              <button className="text-link" onClick={() => setTab('film')}>
-                Create a film <ArrowRight size={14} />
-              </button>
             </div>
           )}
           {tab === 'drawings' && (
@@ -1432,26 +1449,32 @@ export default function Studio() {
                 }}
                 api={sceneAPI}
                 onMessage={notify}
+                onConnections={() => openDialog('settings')}
               />
             </Suspense>
           )}
         </div>
-        <footer className="studio-footer">
-          <span>
-            <span className="status-dot" /> A PLACE-LED DESIGN STUDY
-          </span>
+        <section
+          id="studio-commands"
+          className="command-section"
+          aria-label="Model commands"
+          hidden={tab !== 'model' && !commandsOpen}
+        >
+          <div className="command-heading">
+            <span>Camera & daylight</span>
+            <button
+              className="plain"
+              aria-label="Close commands"
+              onClick={() => {
+                setCommandsOpen(false);
+                commandTrigger.current?.focus();
+              }}
+              hidden={tab === 'model'}
+            >
+              <X size={16} />
+            </button>
+          </div>
           <div className="voice-dock">
-            {message && (
-              <output className="voice-feedback">
-                <span>{message}</span>
-                <button
-                  aria-label="Dismiss feedback"
-                  onClick={() => setMessage('')}
-                >
-                  <X size={13} />
-                </button>
-              </output>
-            )}
             <form
               className="voice-bar"
               onSubmit={(e) => {
@@ -1463,12 +1486,18 @@ export default function Studio() {
                 className="voice-history"
                 type="button"
                 aria-label="Conversation and editable transcript"
-                onClick={() => setDialog('history')}
+                onClick={() => openDialog('history')}
               >
                 <span className="voice-spark">✳</span>
               </button>
               <input
                 ref={input}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape' && tab !== 'model') {
+                    setCommandsOpen(false);
+                    commandTrigger.current?.focus();
+                  }
+                }}
                 aria-label="Design instruction"
                 placeholder={
                   voiceState === 'listening'
@@ -1515,14 +1544,21 @@ export default function Studio() {
             <span className="voice-availability">
               {['listening', 'thinking', 'speaking'].includes(voiceState)
                 ? 'OPENAI REALTIME · PAID API SESSION · 5 MIN LIMIT'
-                : 'VOICE + TYPE · / TO FOCUS · ENTER TO APPLY'}
+                : 'Try “aerial view” or “set daylight to 18” · Enter to apply'}
             </span>
           </div>
-          <span>
-            R{String(spec.revision).padStart(2, '0')} ·{' '}
-            {saveState.toUpperCase()}
-          </span>
-        </footer>
+        </section>
+        {message && (
+          <output className="studio-feedback" aria-live="polite">
+            <span>{message}</span>
+            <button
+              aria-label="Dismiss feedback"
+              onClick={() => setMessage('')}
+            >
+              <X size={13} />
+            </button>
+          </output>
+        )}
         {busy && (
           <output className="busy-indicator">
             <span className="spinner" />
@@ -1536,18 +1572,19 @@ export default function Studio() {
           }}
         >
           <DialogContent
+            finalFocus={dialogOpener}
             className={`studio-dialog ${dialog === 'history' ? 'wide-dialog' : ''}`}
           >
             <DialogTitle>
               {dialog === 'new'
-                ? 'A new point of departure.'
+                ? 'New study'
                 : dialog === 'export'
-                  ? 'Ready for the review.'
+                  ? 'Export study'
                   : dialog === 'settings'
                     ? 'Connections & voice'
                     : dialog === 'history'
-                      ? 'Your design conversation'
-                      : 'Continue in your creative workspace.'}
+                      ? 'History'
+                      : 'Export a task'}
             </DialogTitle>
             <DialogDescription>
               {dialog === 'new'
@@ -1555,9 +1592,9 @@ export default function Studio() {
                 : dialog === 'export'
                   ? `${spec.name} · revision ${spec.revision} · Schematic design`
                   : dialog === 'settings'
-                    ? 'Local generation uses Codex when connected. OpenAI powers API fallback and voice; AIand powers video.'
+                    ? 'Manage voice and film connections. Typed camera and daylight commands work without a connection.'
                     : dialog === 'history'
-                      ? 'Editable transcripts and saved design versions keep every decision reviewable.'
+                      ? 'Review conversations and restore a previous version.'
                       : 'Export a specific task, use your connected Codex or ChatGPT tools, and import the result for review.'}
             </DialogDescription>
             {dialog === 'new' && (
@@ -1658,10 +1695,12 @@ export default function Studio() {
                   </button>
                   {!sceneAPI && (
                     <p className="inline-warning">
-                      Open the 3D model first to include GLB and presentation
-                      renders.{' '}
+                      {sceneStatus === 'unavailable'
+                        ? '3D is unavailable in this session. Reload the page to retry, or export a project backup.'
+                        : 'Open the 3D model to include GLB and presentation renders.'}{' '}
                       <button
                         className="text-link"
+                        disabled={sceneStatus === 'unavailable'}
                         onClick={() => {
                           setTab('model');
                           setDialog(null);
@@ -1687,10 +1726,7 @@ export default function Studio() {
                     <FileJson size={24} />
                     <div>
                       <strong>Project specification</strong>
-                      <p>
-                        Portable JSON backup of the current project and its
-                        locks.
-                      </p>
+                      <p>Portable JSON backup of this study.</p>
                     </div>
                     <Download size={18} />
                   </button>
@@ -1707,7 +1743,7 @@ export default function Studio() {
                   >
                     <Box size={24} />
                     <div>
-                      <strong>Editable exterior model</strong>
+                      <strong>Exterior model</strong>
                       <p>GLB · named semantic geometry · metre units.</p>
                     </div>
                     <Download size={18} />
@@ -1777,33 +1813,16 @@ export default function Studio() {
                     {capabilities?.video ? 'CONNECTED' : 'NOT CONNECTED'}
                   </span>
                 </div>
-                <div className="connection">
-                  <Layers size={23} />
-                  <div>
-                    <strong>Research & generated assets</strong>
-                    <p>
-                      Use Generate to research your geofence, create local
-                      concepts, refine images, and propose model edits. Local
-                      Codex uses your signed-in subscription; the hosted app
-                      uses the paid OpenAI API.
-                    </p>
-                  </div>
-                  <button
-                    className="outline-button"
-                    onClick={() => openGeneration('research')}
-                  >
-                    Open generation
-                  </button>
-                </div>
+
                 <button
                   className="outline-button"
                   onClick={() => {
                     setDialog(null);
-                    input.current?.focus();
-                    setTranscript('Deepen the fins to 1.2 metres');
+                    openCommands();
+                    setTranscript('Aerial view');
                   }}
                 >
-                  Try a typed design instruction <ArrowRight size={14} />
+                  Try a camera command <ArrowRight size={14} />
                 </button>
               </>
             )}
@@ -1825,7 +1844,7 @@ export default function Studio() {
                             onClick={() => {
                               setTranscript(m.text);
                               setDialog(null);
-                              input.current?.focus();
+                              openCommands();
                             }}
                           >
                             Edit and reapply <ArrowRight size={12} />
@@ -1835,14 +1854,13 @@ export default function Studio() {
                     ))
                   ) : (
                     <p className="muted">
-                      Tell Placeform what to change. Try “Use A’s massing, B’s
-                      facade, and C’s landscape.”
+                      Your camera and daylight commands will appear here.
                     </p>
                   )}
                   <div className="command-examples">
                     {[
-                      'Deepen the fins to 1.2 metres',
-                      'Lock the roofline',
+                      'Aerial view',
+                      'Set daylight to 18',
                       'Show the entrance at sunset',
                       'Undo that',
                     ].map((t) => (
@@ -1864,18 +1882,9 @@ export default function Studio() {
                   <h3>Design versions</h3>
                   <div className="current-version">
                     <strong>R{spec.revision} · Current</strong>
-                    <span>
-                      {
-                        projectConcepts.find((c) => c.id === spec.material)
-                          ?.materials[0]
-                      }{' '}
-                      · {spec.finDepth.toFixed(2)} m fins
-                    </span>
+                    <span>{activeConcept.name}</span>
                     <small>
-                      {spec.locks.length
-                        ? spec.locks.map((f) => featureLabels[f]).join(', ') +
-                          ' locked'
-                        : 'No feature locks'}
+                      {viewNames[spec.view]} · {spec.hour}:00 daylight
                     </small>
                   </div>
                   {[...past].reverse().map((p, i) => (
@@ -1884,7 +1893,7 @@ export default function Studio() {
                       onClick={() => {
                         commit(
                           { ...p, revision: spec.revision },
-                          `Restored the geometry from revision ${p.revision}.`,
+                          `Restored revision ${p.revision}.`,
                         );
                         setDialog(null);
                       }}
@@ -1899,7 +1908,7 @@ export default function Studio() {
                           }
                         </strong>
                         <small>
-                          {p.finDepth.toFixed(2)} m fins · {p.height} m height
+                          {viewNames[p.view]} · {p.hour}:00 daylight
                         </small>
                       </div>
                       <History size={14} />

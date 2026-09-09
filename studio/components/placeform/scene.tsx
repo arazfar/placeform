@@ -3,6 +3,7 @@
 // Native images support local/blob imports. Silent model films have no spoken audio to caption.
 import {
   useEffect,
+  useCallback,
   useMemo,
   useRef,
   useState,
@@ -21,8 +22,10 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { disposeArchitecture } from '@/lib/architecture';
 import { buildDemoModel } from '@/lib/demo-models';
+import { watchContextLoss } from '@/lib/scene-availability';
 import type { BuildingSpec, Feature, View } from '@/lib/spec';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+export type SceneStatus = 'loading' | 'ready' | 'unavailable';
 export type Shot = {
   id: string;
   name: string;
@@ -499,13 +502,28 @@ function Model({
     </>
   );
 }
+function RendererHealth({
+  onStatus,
+}: {
+  onStatus: (status: SceneStatus) => void;
+}) {
+  const { gl } = useThree();
+  useEffect(
+    () => watchContextLoss(gl.domElement, () => onStatus('unavailable')),
+    [gl, onStatus],
+  );
+  return null;
+}
 class SceneError extends Component<
-  { children: ReactNode },
+  { children: ReactNode; onStatus: (status: SceneStatus) => void },
   { error: boolean }
 > {
   state = { error: false };
   static getDerivedStateFromError() {
     return { error: true };
+  }
+  componentDidCatch() {
+    this.props.onStatus('unavailable');
   }
   render() {
     return this.state.error ? (
@@ -522,23 +540,42 @@ export default function Scene({
   spec,
   onSelect,
   onReady,
+  onStatus,
   walk = false,
 }: {
   spec: BuildingSpec;
   onSelect: (f: Feature) => void;
   onReady: (api: SceneAPI) => void;
+  onStatus: (status: SceneStatus) => void;
   walk?: boolean;
 }) {
   const [webgl, setWebgl] = useState<boolean | null>(null);
+  const rendererStatus = useCallback(
+    (status: SceneStatus) => {
+      if (status === 'unavailable') setWebgl(false);
+      onStatus(status);
+    },
+    [onStatus],
+  );
+  const ready = useCallback(
+    (api: SceneAPI) => {
+      onStatus('ready');
+      onReady(api);
+    },
+    [onStatus, onReady],
+  );
   useEffect(() => {
+    onStatus('loading');
     try {
       const probe = document.createElement('canvas').getContext('webgl2');
       setWebgl(!!probe);
+      if (!probe) onStatus('unavailable');
       probe?.getExtension('WEBGL_lose_context')?.loseContext();
     } catch {
       setWebgl(false);
+      onStatus('unavailable');
     }
-  }, []);
+  }, [onStatus]);
   if (webgl !== true)
     return (
       <div className="scene-error">
@@ -548,8 +585,9 @@ export default function Scene({
       </div>
     );
   return (
-    <SceneError>
+    <SceneError onStatus={rendererStatus}>
       <Canvas
+        aria-label={`Interactive 3D model of ${spec.name}`}
         shadows="percentage"
         dpr={[1, 1.7]}
         camera={{ position: [75, 24, 84], fov: 42, near: 0.1, far: 600 }}
@@ -565,13 +603,13 @@ export default function Scene({
           gl.shadowMap.type = THREE.PCFShadowMap;
         }}
         fallback={
-          <div className="scene-error">
-            WebGL is unavailable. You can still explore concepts and generate
-            video from the reference image.
-          </div>
+          <span>
+            Interactive model. Use the camera and daylight controls to explore.
+          </span>
         }
       >
-        <Model spec={spec} onSelect={onSelect} apiRef={onReady} walk={walk} />
+        <RendererHealth onStatus={rendererStatus} />
+        <Model spec={spec} onSelect={onSelect} apiRef={ready} walk={walk} />
       </Canvas>
     </SceneError>
   );

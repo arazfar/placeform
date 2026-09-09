@@ -407,30 +407,6 @@ export default function SiteMap({
           <Download size={18} />
         </button>
       </div>
-      <div className="map-metrics">
-        <div>
-          <span>STUDY AREA</span>
-          <strong>
-            {spec.boundaryConfirmed === false
-              ? '—'
-              : (siteArea(spec.site) / 10000).toFixed(2)}{' '}
-            <small>ha</small>
-          </strong>
-        </div>
-        <div>
-          <span>LONG-AXIS BEARING</span>
-          <strong>
-            {spec.site.rotation.toFixed(1)}
-            <small>°</small>
-          </strong>
-        </div>
-        <div>
-          <span>FOOTPRINT</span>
-          <strong>
-            {(spec.length * spec.width).toLocaleString()} <small>m²</small>
-          </strong>
-        </div>
-      </div>
       {error && <div className="map-warning">{error}</div>}
       {spec.boundaryConfirmed === false && (
         <div className="map-warning">
