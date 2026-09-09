@@ -1,326 +1,615 @@
 'use client';
-// Imperative browser engines and persisted external sessions are intentionally outside React Compiler.
-// Native images support local/blob imports. Silent model films have no spoken audio to caption.
+// Native images and video support browser-local media and private provider content.
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { Play, Download, ArrowUpRight, RefreshCw, Film } from 'lucide-react';
+import JSZip from 'jszip';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { Play, Download, ArrowUpRight, RefreshCw, Film } from 'lucide-react';
-import JSZip from 'jszip';
 import { Progress } from '@/components/ui/progress';
-import { Checkbox } from '@/components/ui/checkbox';
 import { filmShots, type SceneAPI } from './scene';
-import { type BuildingSpec } from '@/lib/spec';
-import { demoConcept } from '@/lib/demo-catalog';
+import type { BuildingSpec } from '@/lib/spec';
 import { download } from '@/lib/download';
 import { saveMedia, loadMedia } from '@/lib/media-store';
 import { videoReadiness, type VideoCatalog } from '@/lib/video-readiness';
-export type VideoJob = {
-  id: string;
-  projectId: string;
-  revision: number;
-  shot: string;
-  status: string;
-  cost?: string;
-  currency?: string;
-  prompt: string;
-  seconds: number;
-  error?: { message: string } | string;
-  createdAt: string;
-  review?: string[];
-};
-type APIData = Partial<VideoJob> &
-  VideoCatalog & {
-    id: string;
-    error?: string;
-    uncertain?: boolean;
-    data?: Array<VideoJob & { created_at: number }>;
-  };
+import {
+  cinematicPrompt,
+  referenceIssue,
+  isRunning,
+  isUncertain,
+  mergeProviderJob,
+  reconcileJobs,
+  readSavedJobs,
+  JOBS_KEY,
+  type CameraMove,
+  type FilmReference,
+  type ProviderJob,
+  type VideoJob,
+} from '@/lib/cinematic';
+import {
+  imageForFilm,
+  savedFilm,
+  videoJSON,
+  VideoRequestError,
+} from '@/lib/video-client';
+export type { VideoJob } from '@/lib/cinematic';
+
+function CompletedFilm({
+  job,
+  onAnother,
+}: {
+  job: VideoJob;
+  onAnother?: () => void;
+}) {
+  const [url, setURL] = useState(''),
+    [notice, setNotice] = useState(''),
+    [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let disposed = false,
+      objectURL = '';
+    setURL('');
+    setNotice('');
+    void savedFilm(job.id)
+      .then(({ blob, warning }) => {
+        if (!disposed) {
+          objectURL = URL.createObjectURL(blob);
+          setURL(objectURL);
+          setNotice(warning || '');
+        }
+      })
+      .catch((error) => {
+        if (!disposed) setNotice((error as Error).message);
+      });
+    return () => {
+      disposed = true;
+      if (objectURL) URL.revokeObjectURL(objectURL);
+    };
+  }, [job.id, attempt]);
+  return (
+    <div className="film-video cinematic-result">
+      <div className="section-kicker">
+        {job.referenceLabel || job.shot} · {job.seconds} SECONDS
+      </div>
+      {url ? (
+        <video
+          controls
+          playsInline
+          src={url}
+          preload="metadata"
+          onError={() =>
+            setNotice(
+              'Playback failed. Try downloading the MP4 or reload the film.',
+            )
+          }
+        />
+      ) : (
+        <output>{notice || 'Loading your cinematic…'}</output>
+      )}
+      <div className="film-actions">
+        {url && (
+          <a
+            className="outline-button"
+            href={url}
+            download={`placeform-${job.id}.mp4`}
+          >
+            <Download size={15} /> Download MP4
+          </a>
+        )}
+        {onAnother && (
+          <button className="accent-button" onClick={onAnother}>
+            <Film size={15} /> Generate another take
+          </button>
+        )}
+        {notice && (
+          <button
+            className="outline-button"
+            onClick={() => setAttempt((n) => n + 1)}
+          >
+            <RefreshCw size={14} /> Reload film
+          </button>
+        )}
+      </div>
+      {url && notice && <p className="inline-warning">{notice}</p>}
+      {url && (
+        <p>
+          Compare the building edges, facade details and materials with your
+          reference before presenting.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function FilmPanel({
   spec,
+  reference,
+  modelToolsVisible,
+  onToggleModelTools,
   api,
   onMessage,
 }: {
   spec: BuildingSpec;
+  reference: FilmReference;
+  modelToolsVisible: boolean;
+  onToggleModelTools: () => void;
   api: SceneAPI | undefined;
   onMessage: (s: string) => void;
 }) {
-  const shots = filmShots(spec),
-    [selected, setSelected] = useState(0),
-    [progress, setProgress] = useState(0),
+  const shots = filmShots(spec);
+  const [move, setMove] = useState<CameraMove>('push-in'),
+    [seconds, setSeconds] = useState(10),
+    [prompt, setPrompt] = useState(() => cinematicPrompt(10, 'push-in')),
+    [source, setSource] = useState<'concept' | 'model'>('concept'),
+    [firstURL, setFirstURL] = useState(reference.image),
+    [lastURL, setLastURL] = useState(''),
+    [referenceLabel, setReferenceLabel] = useState(reference.label),
+    [referenceConcept, setReferenceConcept] = useState(reference.concept),
+    [selectedShot, setSelectedShot] = useState(0),
+    [preview, setPreview] = useState(''),
+    [recordingExtension, setRecordingExtension] = useState('webm'),
     [busy, setBusy] = useState(''),
+    [progress, setProgress] = useState(0),
     [catalog, setCatalog] = useState<VideoCatalog | null>(null),
-    [checkingConnection, setCheckingConnection] = useState(true),
+    [checking, setChecking] = useState(true),
     [connectionError, setConnectionError] = useState(''),
+    [referenceError, setReferenceError] = useState(''),
     [jobs, setJobs] = useState<VideoJob[]>([]),
     [hydrated, setHydrated] = useState(false),
-    [preview, setPreview] = useState(''),
-    [firstURL, setFirstURL] = useState(demoConcept(spec.concept).image),
-    [referenceSource, setReferenceSource] = useState<'concept' | 'model'>(
-      'concept',
-    ),
-    [lastURL, setLastURL] = useState(''),
-    [prompt, setPrompt] = useState(''),
-    [seconds, setSeconds] = useState(shots[0].seconds),
-    [pollError, setPollError] = useState('');
-  const frames = useRef<{
-    first: Blob;
-    last: Blob;
-    revision: number;
-    shot: string;
-  } | null>(null);
-  const shot = shots[selected],
-    price = catalog?.model?.pricing.find((p) => p.resolution === '768p');
-  const readinessError = videoReadiness(catalog);
-  const refreshCatalog = useCallback(async (signal?: AbortSignal) => {
-    setCheckingConnection(true);
-    setCatalog(null);
-    setConnectionError('');
+    [historyError, setHistoryError] = useState(''),
+    [pollError, setPollError] = useState(''),
+    [actionError, setActionError] = useState(''),
+    [featuredId, setFeaturedId] = useState<string | null>(null);
+  const jobsRef = useRef<VideoJob[]>([]),
+    locked = useRef(false),
+    frames = useRef<{ first: Blob; last?: Blob } | null>(null),
+    sourceRevision = useRef(spec.revision);
+  const persist = useCallback((update: (current: VideoJob[]) => VideoJob[]) => {
+    const next = update(readSavedJobs(localStorage.getItem(JOBS_KEY)));
+    // Commit synchronously before any paid request. A failed write must stop submission.
+    localStorage.setItem(JOBS_KEY, JSON.stringify(next));
+    jobsRef.current = next;
+    setJobs(next);
+  }, []);
+  useEffect(() => {
     try {
-      const r = await fetch('/api/video', { signal, cache: 'no-store' });
-      const v = (await r.json()) as APIData;
-      if (!r.ok) throw new Error(v.error || 'Video connection failed.');
-      if (!signal?.aborted) setCatalog(v);
-    } catch (e) {
-      if (!signal?.aborted) setConnectionError((e as Error).message);
+      const saved = readSavedJobs(localStorage.getItem(JOBS_KEY));
+      jobsRef.current = saved;
+      setJobs(saved);
+      setHydrated(true);
+    } catch (error) {
+      setHistoryError((error as Error).message);
+    }
+  }, []);
+  const refreshCatalog = useCallback(async (signal?: AbortSignal) => {
+    setChecking(true);
+    setConnectionError('');
+    setCatalog(null);
+    try {
+      const data = await videoJSON<VideoCatalog>('/api/video', { signal });
+      if (!signal?.aborted) setCatalog(data);
+    } catch (error) {
+      if (!signal?.aborted) setConnectionError((error as Error).message);
     } finally {
-      if (!signal?.aborted) setCheckingConnection(false);
+      if (!signal?.aborted) setChecking(false);
     }
   }, []);
   useEffect(() => {
-    const controller = new AbortController();
-    void refreshCatalog(controller.signal);
-    return () => controller.abort();
+    const c = new AbortController();
+    void refreshCatalog(c.signal);
+    return () => c.abort();
   }, [refreshCatalog]);
   useEffect(() => {
-    try {
-      const v = JSON.parse(
-        localStorage.getItem('placeform-video-jobs') || '[]',
-      );
-      if (Array.isArray(v)) setJobs(v);
-    } catch {}
-    setHydrated(true);
-  }, []);
-  useEffect(() => {
-    if (hydrated)
-      localStorage.setItem('placeform-video-jobs', JSON.stringify(jobs));
-  }, [jobs, hydrated]);
-  useEffect(() => {
-    setPrompt(
-      `${shot.description} Preserve the building silhouette, proportions, material colors, facade bay count, canopy, roof equipment screen and landscape from the supplied concept reference. A slow architectural camera move; no new geometry, no text, no dramatic weather. Exterior of ${demoConcept(spec.concept).name}: ${demoConcept(spec.concept).description}.`,
-    );
-    setSeconds(shot.seconds);
-    frames.current = null;
-    setFirstURL(demoConcept(spec.concept).image);
-    setReferenceSource('concept');
+    setSource('concept');
+    setFirstURL(reference.image);
     setLastURL('');
+    frames.current = null;
+    setReferenceLabel(reference.label);
+    setReferenceConcept(reference.concept);
+    sourceRevision.current = spec.revision;
+    setReferenceError('');
     setPreview('');
-    let stale = false;
-    loadMedia(`${spec.id}:${spec.concept}:${spec.revision}:${shot.id}`)
-      .then((blob) => {
-        if (blob && !stale) setPreview(URL.createObjectURL(blob));
-      })
-      .catch(() => {});
-    return () => {
-      stale = true;
-    };
+    setFeaturedId(null);
+    setMove('push-in');
+    setSeconds(10);
+    setPrompt(cinematicPrompt(10, 'push-in'));
   }, [
-    spec.concept,
-    selected,
+    reference.image,
+    reference.concept,
+    reference.label,
     spec.id,
     spec.revision,
-    spec.name,
-    shot.description,
-    shot.seconds,
-    shot.id,
   ]);
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (firstURL.startsWith('blob:')) URL.revokeObjectURL(firstURL);
+    },
+    [firstURL],
+  );
+  useEffect(
+    () => () => {
       if (lastURL.startsWith('blob:')) URL.revokeObjectURL(lastURL);
+    },
+    [lastURL],
+  );
+  useEffect(
+    () => () => {
       if (preview.startsWith('blob:')) URL.revokeObjectURL(preview);
-    };
-  }, [firstURL, lastURL, preview]);
+    },
+    [preview],
+  );
+  const reconcile = useCallback(async () => {
+    const history: ProviderJob[] = [];
+    let after = '';
+    for (let page = 0; page < 10; page++) {
+      const data = await videoJSON<{ data: ProviderJob[]; has_more: boolean }>(
+        `/api/video?history=1${after ? `&after=${encodeURIComponent(after)}` : ''}`,
+      );
+      history.push(...data.data);
+      if (!data.has_more || !data.data.length) break;
+      after = data.data[data.data.length - 1].id;
+    }
+    persist((current) => reconcileJobs(current, history));
+  }, [persist]);
   useEffect(() => {
     if (!hydrated) return;
-    const active = jobs.filter(
-      (j) =>
-        ![
-          'completed',
-          'failed',
-          'canceled',
-          'submission-unknown',
-          'submitting',
-        ].includes(j.status),
-    );
-    if (!active.length) return;
-    let dead = false;
+    let disposed = false,
+      timer: ReturnType<typeof setTimeout>,
+      failures = 0;
+    const controller = new AbortController();
     async function poll() {
-      for (const job of active) {
+      let failed = false;
+      // An in-flight submission can finish after Film unmounts. Read its durable
+      // receipt on every tick rather than holding an obsolete component snapshot.
+      try {
+        const latest = readSavedJobs(localStorage.getItem(JOBS_KEY));
+        if (JSON.stringify(latest) !== JSON.stringify(jobsRef.current)) {
+          jobsRef.current = latest;
+          if (!disposed) setJobs(latest);
+        }
+      } catch (error) {
+        failed = true;
+        if (!disposed) setPollError((error as Error).message);
+      }
+      for (const job of jobsRef.current.filter(isRunning)) {
+        if (disposed) return;
         try {
-          const r = await fetch(`/api/video?id=${encodeURIComponent(job.id)}`);
-          const v = (await r.json()) as APIData;
-          if (!r.ok) throw new Error(v.error || 'Video request failed.');
-          if (!dead) {
-            setJobs((js) =>
-              js.map((j) => (j.id === job.id ? { ...j, ...v } : j)),
+          const data = await videoJSON<ProviderJob>(
+            `/api/video?id=${encodeURIComponent(job.id)}`,
+            { signal: controller.signal },
+          );
+          if (!disposed)
+            persist((current) =>
+              current.map((j) =>
+                j.id === job.id ? mergeProviderJob(j, data) : j,
+              ),
             );
-            setPollError('');
+        } catch (error) {
+          if (disposed) return;
+          failed = true;
+          if (
+            error instanceof VideoRequestError &&
+            [404, 410].includes(error.status)
+          ) {
+            try {
+              persist((current) =>
+                current.map((j) =>
+                  j.id === job.id
+                    ? {
+                        ...j,
+                        status: 'expired',
+                        error: 'This job is no longer available from AIand.',
+                      }
+                    : j,
+                ),
+              );
+            } catch {
+              /* report storage failure below */
+            }
           }
-        } catch (e) {
-          if (!dead) setPollError((e as Error).message);
+          setPollError(
+            `${(error as Error).message} Your render has not been resubmitted.`,
+          );
         }
       }
+      failures = failed ? failures + 1 : 0;
+      if (!disposed) {
+        if (!failed) setPollError('');
+        timer = setTimeout(poll, Math.min(60000, 15000 * 2 ** failures));
+      }
     }
-    const timer = setInterval(poll, 15000);
+    void poll();
+    if (jobsRef.current.some(isUncertain))
+      void reconcile().catch((error) => {
+        if (!disposed) setPollError((error as Error).message);
+      });
+    // The recursive timer does not reset on every job update and cannot overlap itself.
     return () => {
-      dead = true;
-      clearInterval(timer);
+      disposed = true;
+      controller.abort();
+      clearTimeout(timer);
     };
-  }, [jobs, hydrated]);
-  async function guarded(label: string, fn: () => Promise<void>) {
-    if (busy) return;
+  }, [hydrated, persist, reconcile]);
+  const cacheAttempts = useRef(new Set<string>());
+  const [cacheNotice, setCacheNotice] = useState('');
+  useEffect(() => {
+    const complete = jobs.filter(
+      (j) => j.status === 'completed' && !cacheAttempts.current.has(j.id),
+    );
+    for (const job of complete) cacheAttempts.current.add(job.id);
+    void (async () => {
+      for (const job of complete) {
+        try {
+          const { warning } = await savedFilm(job.id);
+          if (warning) setCacheNotice(warning);
+        } catch {
+          setCacheNotice(
+            'A completed film could not be saved offline. Open it to retry, or download your own copy.',
+          );
+        }
+      }
+    })();
+  }, [jobs]);
+  async function guarded(label: string, action: () => Promise<void>) {
+    if (locked.current) return;
+    locked.current = true;
     setBusy(label);
+    setActionError('');
     setProgress(0);
     try {
-      await fn();
-    } catch (e) {
-      onMessage((e as Error).message);
+      await action();
+    } catch (error) {
+      const text = (error as Error).message;
+      setActionError(text);
+      onMessage(text);
     } finally {
+      locked.current = false;
       setBusy('');
     }
   }
+  const price = catalog?.model?.pricing.find((p) => p.resolution === '768p'),
+    readiness = videoReadiness(catalog),
+    issue = referenceIssue(firstURL) || referenceError,
+    shot = shots[selectedShot],
+    projectJobs = jobs.filter((j) => j.projectId === spec.id),
+    unresolved = projectJobs.some(isUncertain),
+    featured =
+      projectJobs.find(
+        (j) => j.id === featuredId && j.status === 'completed',
+      ) ||
+      (featuredId === null
+        ? projectJobs.find(
+            (j) => j.status === 'completed' && j.concept === reference.concept,
+          )
+        : undefined);
+  function updateSettings(nextSeconds: number, nextMove: CameraMove) {
+    setSeconds(nextSeconds);
+    setMove(nextMove);
+    setPrompt(cinematicPrompt(nextSeconds, nextMove, !!frames.current?.last));
+  }
+  async function selectConceptReference() {
+    frames.current = null;
+    sourceRevision.current = spec.revision;
+    setSource('concept');
+    setReferenceConcept(reference.concept);
+    setReferenceLabel(reference.label);
+    setFirstURL(reference.image);
+    setLastURL('');
+    setPreview('');
+    setReferenceError('');
+    setPrompt(cinematicPrompt(seconds, move));
+  }
   async function prepare() {
     if (!api) throw new Error('Open the model and wait for it to load.');
-    const f = await api.frames(shot);
-    frames.current = { ...f, revision: spec.revision, shot: shot.id };
-    setReferenceSource('model');
-    setFirstURL(URL.createObjectURL(f.first));
-    setLastURL(URL.createObjectURL(f.last));
+    const captured = await api.frames(shot);
+    frames.current = captured;
+    sourceRevision.current = spec.revision;
+    setSource('model');
+    setReferenceConcept(spec.concept);
+    setReferenceLabel(`Model · ${shot.name}`);
+    setFirstURL(URL.createObjectURL(captured.first));
+    setLastURL(URL.createObjectURL(captured.last));
+    setReferenceError('');
+    setPrompt(cinematicPrompt(seconds, move, true));
+    setFeaturedId('');
   }
-  async function record() {
-    if (!api) throw new Error('The model is loading.');
-    const clip = await api.record({ ...shot, seconds }, setProgress);
-    await saveMedia(
-      `${spec.id}:${spec.concept}:${spec.revision}:${shot.id}`,
-      clip,
-    );
-    setPreview(URL.createObjectURL(clip));
-    onMessage(
-      'Original model clip saved in this browser. It is ready to download.',
-    );
-  }
-  async function submit() {
-    if (checkingConnection || readinessError)
-      throw new Error(readinessError || 'Wait for the video connection check.');
-    if (!price) throw new Error('Verify the live model and price first.');
-    let references: Blob[];
-    if (referenceSource === 'concept') {
-      const response = await fetch(demoConcept(spec.concept).image);
-      if (!response.ok)
-        throw new Error('The concept reference could not be loaded.');
-      references = [await response.blob()];
-    } else {
-      if (
-        !frames.current ||
-        frames.current.revision !== spec.revision ||
-        frames.current.shot !== shot.id
-      )
+  async function submit(original?: VideoJob) {
+    if (!hydrated)
+      throw new Error('Film history must be available before generating.');
+    if (checking || readiness || !price)
+      throw new Error(
+        connectionError || readiness || 'Wait for the connection check.',
+      );
+    if (!original && issue) throw new Error(issue);
+    if (unresolved)
+      throw new Error(
+        'Check the unresolved submission in job history before generating again.',
+      );
+    let snapshotFrames = frames.current;
+    if (original) {
+      if (!original.firstKey)
         throw new Error(
-          'Prepare reference frames for the current model first.',
+          'This older film has no saved reference. Select an image for a new take.',
         );
-      references = [frames.current.first, frames.current.last];
+      const first = await loadMedia(original.firstKey),
+        last = original.lastKey ? await loadMedia(original.lastKey) : undefined;
+      if (!first || (original.lastKey && !last))
+        throw new Error(
+          'The original reference is no longer saved in this browser.',
+        );
+      snapshotFrames = { first, last };
     }
-    const fileIds: string[] = [];
-    for (const [i, blob] of references.entries()) {
-      const form = new FormData();
-      form.set('file', blob, `r${spec.revision}-${shot.id}-${i}.png`);
-      const r = await fetch('/api/video', { method: 'POST', body: form });
-      const v = (await r.json()) as APIData;
-      if (!r.ok) throw new Error(v.error || 'Video request failed.');
-      fileIds.push(v.id);
-    }
-    const intent: VideoJob = {
-      id: `intent-${crypto.randomUUID()}`,
+    const intentId = `intent-${crypto.randomUUID()}`;
+    const snapshot: VideoJob = {
+      id: intentId,
+      intentId,
       projectId: spec.id,
-      revision: spec.revision,
-      shot: shot.id,
-      status: 'submitting',
-      prompt,
-      seconds,
+      revision: original?.revision ?? sourceRevision.current,
+      shot: original?.shot ?? (source === 'model' ? shot.id : move),
+      status: 'preparing',
+      prompt: original?.prompt ?? prompt,
+      seconds: original?.seconds ?? seconds,
       createdAt: new Date().toISOString(),
+      concept: original?.concept ?? referenceConcept,
+      referenceLabel: original?.referenceLabel ?? referenceLabel,
+      move: original?.move ?? move,
+      source: original?.source ?? source,
+      firstKey: `${intentId}:first`,
+      ...(snapshotFrames?.last ? { lastKey: `${intentId}:last` } : {}),
     };
-    setJobs((j) => [intent, ...j]);
+    // Resolve immutable bytes before upload; never look up the current selection again.
+    const first = snapshotFrames?.first || (await imageForFilm(firstURL)),
+      last = snapshotFrames?.last;
     try {
-      const r = await fetch('/api/video', {
+      await saveMedia(snapshot.firstKey!, first);
+      if (last) await saveMedia(snapshot.lastKey!, last);
+    } catch {
+      throw new Error(
+        'This browser could not save the reference. Free storage space before generating.',
+      );
+    }
+    persist((current) => [snapshot, ...current]);
+    let submitted = false;
+    try {
+      const fileIds: string[] = [];
+      for (const [index, blob] of [first, ...(last ? [last] : [])].entries()) {
+        setBusy(`Preparing reference ${index + 1}…`);
+        const form = new FormData();
+        form.set('file', blob, `${intentId}-${index}.png`);
+        const uploaded = await videoJSON<{ id: string }>('/api/video', {
+          method: 'POST',
+          body: form,
+        });
+        if (!/^file[-_][\w-]+$/.test(uploaded.id))
+          throw new Error('The reference upload returned an invalid file ID.');
+        fileIds.push(uploaded.id);
+      }
+      persist((current) =>
+        current.map((j) =>
+          j.id === intentId
+            ? {
+                ...j,
+                status: 'submitting',
+                createdAt: new Date().toISOString(),
+              }
+            : j,
+        ),
+      );
+      setBusy('Starting your cinematic…');
+      submitted = true;
+      const result = await videoJSON<ProviderJob>('/api/video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt,
-          seconds,
+          prompt: snapshot.prompt,
+          seconds: snapshot.seconds,
           firstFrame: fileIds[0],
           lastFrame: fileIds[1],
           expectedRate: price.per_second,
         }),
       });
-      const v = (await r.json()) as APIData;
-      if (!r.ok) {
-        setJobs((js) =>
-          js.map((j) =>
-            j.id === intent.id
+      if (!/^video_[\w-]+$/.test(result.id) || !result.status)
+        throw new Error(
+          'The provider returned an incomplete submission response.',
+        );
+      persist((current) =>
+        current.map((j) =>
+          j.id === intentId ? mergeProviderJob(j, result) : j,
+        ),
+      );
+      setFeaturedId(result.id);
+      setPreview('');
+      onMessage(
+        result.status === 'failed'
+          ? 'AIand could not render this take. The original settings are saved for retry.'
+          : 'Your cinematic is rendering. You can leave this panel and return later.',
+      );
+    } catch (error) {
+      const uncertain =
+        submitted && (!(error instanceof VideoRequestError) || error.uncertain);
+      try {
+        persist((current) =>
+          current.map((j) =>
+            j.id === intentId
               ? {
                   ...j,
-                  status: v.uncertain ? 'submission-unknown' : 'failed',
-                  error: v.error,
+                  status: uncertain ? 'submission-unknown' : 'failed',
+                  error: (error as Error).message,
                 }
               : j,
           ),
         );
-        throw new Error(v.error || 'Video request failed.');
+      } catch {
+        throw new Error(
+          'The job may have started, but browser storage failed. Check AIand history before retrying.',
+        );
       }
-      setJobs((js) =>
-        js.map((j) => (j.id === intent.id ? { ...intent, ...v } : j)),
-      );
-      onMessage(
-        `AIand accepted the ${seconds}-second job. Quote: ${v.cost} ${v.currency}.`,
-      );
-    } catch (e) {
-      setJobs((js) =>
-        js.map((j) =>
-          j.id === intent.id && j.status === 'submitting'
-            ? { ...j, status: 'submission-unknown' }
-            : j,
-        ),
-      );
-      throw e;
+      if (error instanceof VideoRequestError && error.code === 'price_changed')
+        await refreshCatalog();
+      throw error;
     }
   }
-  async function exportFrames() {
-    const zip = new JSZip();
-    if (referenceSource === 'concept') {
-      const response = await fetch(demoConcept(spec.concept).image);
-      if (!response.ok)
-        throw new Error('The concept reference could not be loaded.');
-      zip.file('first-frame.png', await response.blob());
-    } else {
-      if (!frames.current) await prepare();
-      const f = frames.current!;
-      zip.file('first-frame.png', f.first);
-      zip.file('last-frame.png', f.last);
-    }
+  async function restore(job: VideoJob) {
+    if (!job.firstKey)
+      throw new Error(
+        'This older job has no saved reference. Choose the image again to create a new take.',
+      );
+    const first = await loadMedia(job.firstKey),
+      last = job.lastKey ? await loadMedia(job.lastKey) : undefined;
+    if (!first || (job.lastKey && !last))
+      throw new Error(
+        'The original reference is no longer saved in this browser. Choose the image again.',
+      );
+    frames.current = { first, last };
+    sourceRevision.current = job.revision;
+    setFirstURL(URL.createObjectURL(first));
+    setLastURL(last ? URL.createObjectURL(last) : '');
+    setReferenceLabel(job.referenceLabel || job.shot);
+    setReferenceConcept(job.concept || reference.concept);
+    setSource(job.source || 'concept');
+    setMove(job.move || 'push-in');
+    setSeconds(job.seconds);
+    setPrompt(job.prompt);
+    setSelectedShot(
+      Math.max(
+        0,
+        shots.findIndex((s) => s.id === job.shot),
+      ),
+    );
+    setPreview('');
+    setReferenceError('');
+    setFeaturedId('');
+  }
+  async function record() {
+    if (!api) throw new Error('Open the model and wait for it to load.');
+    const clip = await api.record({ ...shot, seconds }, setProgress);
+    await saveMedia(
+      `${spec.id}:${spec.concept}:${spec.revision}:${shot.id}`,
+      clip,
+    );
+    setRecordingExtension(clip.type.includes('mp4') ? 'mp4' : 'webm');
+    setPreview(URL.createObjectURL(clip));
+  }
+  async function exportTask() {
+    const zip = new JSZip(),
+      first = frames.current?.first || (await imageForFilm(firstURL));
+    zip.file('first-frame.png', first);
+    if (frames.current?.last) zip.file('last-frame.png', frames.current.last);
     zip.file(
       'shot.json',
       JSON.stringify(
         {
           projectId: spec.id,
-          revision: spec.revision,
-          ...shot,
-          seconds,
+          concept: referenceConcept,
+          revision: sourceRevision.current,
+          referenceLabel,
+          source,
           prompt,
-          provider: 'AIand',
-          model: 'minimaxai/minimax-h3',
-          pricing: price || 'Unverified; use live catalog',
+          seconds,
+          move,
+          aspect_ratio: '16:9',
+          model: catalog?.model?.id || 'minimaxai/minimax-h3',
+          price,
         },
         null,
         2,
@@ -329,402 +618,379 @@ export default function FilmPanel({
     zip.file('building-specification.json', JSON.stringify(spec, null, 2));
     download(
       await zip.generateAsync({ type: 'blob' }),
-      `placeform-${shot.id}-r${spec.revision}-video-task.zip`,
+      'placeform-cinematic-task.zip',
     );
   }
-  async function reconcile() {
-    const r = await fetch('/api/video?history=1'),
-      v = (await r.json()) as APIData;
-    if (!r.ok) throw new Error(v.error || 'Video request failed.');
-    const recent = Array.isArray(v.data) ? v.data : [];
-    setJobs((js) =>
-      js.map((j) => {
-        if (!['submission-unknown', 'submitting'].includes(j.status)) return j;
-        const candidates = recent.filter(
-          (r: VideoJob & { created_at: number }) =>
-            r.prompt === j.prompt &&
-            r.seconds === j.seconds &&
-            Math.abs(r.created_at * 1000 - Date.parse(j.createdAt)) < 300000,
-        );
-        if (candidates.length === 1) {
-          return { ...j, ...candidates[0] };
-        }
-        return j;
-      }),
-    );
-    onMessage(
-      'Recent provider history checked. Unmatched or ambiguous submissions remain unresolved; inspect the AIand console before retrying.',
-    );
-  }
-  const projectJobs = jobs.filter((j) => j.projectId === spec.id);
   return (
-    <div className="film-layout">
+    <div className="film-layout cinematic-layout">
       <div className="film-story">
-        <div className="film-intro">
-          <div>
-            <div className="eyebrow">A CINEMATIC DESIGN REVIEW</div>
-            <h2>Architecture, in motion.</h2>
-          </div>
+        {featured && (
+          <CompletedFilm
+            key={featured.id}
+            job={featured}
+            onAnother={() =>
+              void guarded('Preparing another take…', () => submit(featured))
+            }
+          />
+        )}
+        <div className="film-frames cinematic-reference">
+          <figure>
+            <img
+              src={firstURL}
+              alt={`${referenceLabel} — cinematic reference`}
+              onError={() =>
+                setReferenceError(
+                  'The selected reference image could not be displayed. Choose a finished image.',
+                )
+              }
+              onLoad={() => setReferenceError('')}
+            />
+            <figcaption>
+              {referenceLabel} ·{' '}
+              {source === 'concept' ? 'SELECTED IMAGE' : 'FIRST FRAME'}
+            </figcaption>
+          </figure>
+          {lastURL && (
+            <figure>
+              <img src={lastURL} alt="Final model reference frame" />
+              <figcaption>LAST FRAME</figcaption>
+            </figure>
+          )}
         </div>
-        {preview ? (
-          <div className="film-video">
-            <video controls src={preview} />
+        <p className="fineprint">
+          The full image is preserved. Images with a different shape receive
+          black borders to fit 16:9.
+        </p>
+        <div className="jobs">
+          <div className="section-kicker">
+            YOUR FILMS{' '}
             <button
-              className="outline-button"
-              onClick={async () => {
-                const blob = await (await fetch(preview)).blob();
-                download(
-                  blob,
-                  `${shot.id}-r${spec.revision}.${blob.type.includes('mp4') ? 'mp4' : 'webm'}`,
-                );
-              }}
+              className="plain"
+              disabled={!!busy || !hydrated}
+              onClick={() =>
+                void guarded('Checking job history…', async () => {
+                  await reconcile();
+                  onMessage(
+                    'History checked. Any ambiguous submissions remain unresolved.',
+                  );
+                })
+              }
             >
-              <Download size={15} /> Download original model clip
+              <RefreshCw size={13} /> Check job history
             </button>
           </div>
-        ) : (
-          <div className="film-frames">
-            {firstURL ? (
-              <>
-                <figure>
-                  <img
-                    src={firstURL}
-                    alt={
-                      referenceSource === 'concept'
-                        ? `${demoConcept(spec.concept).name} concept reference`
-                        : 'Actual model first frame'
-                    }
-                  />
-                  <figcaption>
-                    {referenceSource === 'concept'
-                      ? 'CONCEPT REFERENCE'
-                      : '01 · FIRST FRAME'}
-                  </figcaption>
-                </figure>
-                {lastURL && (
-                  <figure>
-                    <img src={lastURL} alt="Actual model last frame" />
-                    <figcaption>02 · LAST FRAME</figcaption>
-                  </figure>
+          {cacheNotice && <p className="inline-warning">{cacheNotice}</p>}
+          {historyError && <p className="inline-warning">{historyError}</p>}
+          {!projectJobs.length && (
+            <p className="muted">
+              Your cinematic will appear here when it is ready.
+            </p>
+          )}
+          {projectJobs.map((job) => (
+            <div className="job" key={job.id}>
+              <div>
+                <strong>
+                  {job.referenceLabel || job.shot} · {job.seconds}s · r
+                  {job.revision}
+                </strong>
+                <output className="job-status">
+                  {job.status.replaceAll('_', ' ').replaceAll('-', ' ')}
+                </output>
+                {job.cost && (
+                  <small>
+                    {Number(job.cost).toFixed(2)} {job.currency?.toUpperCase()}
+                  </small>
                 )}
-              </>
-            ) : (
-              <div className="storyboard-empty">
-                <span>0{selected + 1}</span>
-                <h3>{shot.name}</h3>
-                <p>{shot.description}</p>
+              </div>
+              {isRunning(job) && (
+                <p>
+                  Rendering usually takes a few minutes. Status updates
+                  automatically.
+                </p>
+              )}
+              {job.error && (
+                <p className="inline-warning">
+                  {typeof job.error === 'string'
+                    ? job.error
+                    : job.error.message}
+                </p>
+              )}
+              {job.status === 'completed' && job.id !== featured?.id && (
                 <button
-                  className="dark-button"
-                  disabled={!!busy || !api}
+                  className="outline-button"
+                  onClick={() => setFeaturedId(job.id)}
+                >
+                  <Play size={14} /> Watch cinematic
+                </button>
+              )}
+              {['failed', 'canceled', 'preparing'].includes(job.status) && (
+                <button
+                  className="plain"
+                  disabled={!!busy}
                   onClick={() =>
-                    guarded('Rendering reference frames…', prepare)
+                    void guarded('Restoring saved settings…', () =>
+                      restore(job),
+                    )
                   }
                 >
-                  Prepare model frames <ArrowUpRight size={15} />
+                  <RefreshCw size={14} /> Load original settings
                 </button>
-              </div>
-            )}
+              )}
+              {isUncertain(job) && (
+                <div>
+                  <p className="inline-warning">
+                    This request may already be rendering. Check job history
+                    before submitting again. If it remains unresolved, inspect
+                    the AIand console.
+                  </p>
+                  <a
+                    className="plain"
+                    href="https://console.aiand.com/video"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open AIand job history
+                  </a>
+                  <button
+                    className="plain"
+                    disabled={!!busy}
+                    onClick={() =>
+                      void guarded('Updating the submission…', async () => {
+                        persist((current) =>
+                          current.map((j) =>
+                            j.id === job.id
+                              ? {
+                                  ...j,
+                                  status: 'failed',
+                                  error:
+                                    'Marked as not submitted after checking AIand. Original settings are available for retry.',
+                                }
+                              : j,
+                          ),
+                        );
+                      })
+                    }
+                  >
+                    I checked AIand: no job was created
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+          {pollError && <output className="inline-warning">{pollError}</output>}
+        </div>
+      </div>
+      <aside className="film-settings">
+        <div className="section-kicker">
+          CINEMATIC <span className="pill">AIAND</span>
+        </div>
+        <h3>Bring this image to life.</h3>
+        <p>
+          A {seconds}-second continuous shot. Gentle movement, realistic detail
+          and quiet natural ambience.
+        </p>
+        <label className="field-label" htmlFor="cinematic-move">
+          CAMERA MOVEMENT
+          <NativeSelect
+            id="cinematic-move"
+            value={move}
+            disabled={!!busy || source === 'model'}
+            onChange={(e) =>
+              updateSettings(seconds, e.target.value as CameraMove)
+            }
+          >
+            <NativeSelectOption value="push-in">
+              Slow forward move
+            </NativeSelectOption>
+            <NativeSelectOption value="truck-right">
+              Gentle move to the right
+            </NativeSelectOption>
+          </NativeSelect>
+        </label>
+        {issue && <p className="inline-warning">{issue}</p>}
+        {actionError && (
+          <p className="inline-warning" role="alert">
+            {actionError}
+          </p>
+        )}
+        <button
+          className="accent-button"
+          disabled={
+            checking ||
+            !!readiness ||
+            !price ||
+            !!issue ||
+            !!busy ||
+            !hydrated ||
+            unresolved ||
+            prompt.trim().length < 8
+          }
+          onClick={() => void guarded('Preparing your cinematic…', submit)}
+        >
+          Generate cinematic{' '}
+          {price
+            ? `· ${(Number(price.per_second) * seconds).toFixed(2)} ${price.currency.toUpperCase()}`
+            : ''}
+          <ArrowUpRight size={15} />
+        </button>
+        {busy && (
+          <div className="film-progress">
+            <output>{busy}</output>
+            <Progress value={busy.includes('Recording') ? progress : null} />
           </div>
         )}
-        <div className="shot-list">
-          {shots.map((sh, i) => (
-            <button
-              className={selected === i ? 'selected' : ''}
-              key={sh.id}
-              onClick={() => {
-                setSelected(i);
-                api?.play();
-              }}
-            >
-              <span>0{i + 1}</span>
-              <div>
-                <strong>{sh.name}</strong>
-                <small>
-                  {sh.seconds} SEC ·{' '}
-                  {i === 0
-                    ? 'APPROACH'
-                    : i === 1
-                      ? 'STREET LEVEL'
-                      : i === 2
-                        ? 'FACADE DETAIL'
-                        : 'AERIAL REVEAL'}
-                </small>
-              </div>
-              <Play size={14} />
-            </button>
-          ))}
+        <div className="provider-card">
+          <div>
+            <span>{referenceLabel}</span>
+            <small>{seconds} seconds · 16:9 · 768p · MP4</small>
+          </div>
+          <p>Quiet natural ambience · no music</p>
+          <output>
+            {checking
+              ? 'Checking video connection…'
+              : connectionError || readiness || 'Ready to generate'}
+          </output>
+          {(connectionError || readiness) && !checking && (
+            <p>
+              <a
+                href="https://console.aiand.com/video"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open AIand settings <ArrowUpRight size={12} />
+              </a>
+            </p>
+          )}
         </div>
-        <div className="film-actions">
+        <p className="fineprint">
+          Each click starts one take. Completed films are saved in this browser
+          while Film is open; download an MP4 to keep your own copy. AIand
+          retains output for 30 days.
+        </p>
+        <details className="cinematic-advanced">
+          <summary>Advanced controls</summary>
+          <label className="field-label">
+            DURATION
+            <NativeSelect
+              disabled={!!busy}
+              value={seconds}
+              onChange={(e) => updateSettings(Number(e.target.value), move)}
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 4).map((n) => (
+                <NativeSelectOption key={n} value={n}>
+                  {n} seconds
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </label>
+          <label className="field-label">
+            SHOT PROMPT
+            <textarea
+              value={prompt}
+              disabled={!!busy}
+              onChange={(e) => setPrompt(e.target.value)}
+              maxLength={7000}
+            />
+          </label>
+          <p className="fineprint">
+            Changing movement or duration rebuilds this prompt. Editing the
+            prompt leaves the reference image unchanged.
+          </p>
           <button
             className="outline-button"
             disabled={!!busy}
-            onClick={() => {
-              frames.current = null;
-              setReferenceSource('concept');
-              setFirstURL(demoConcept(spec.concept).image);
-              setLastURL('');
-              setPreview('');
-            }}
+            onClick={() =>
+              setPrompt(cinematicPrompt(seconds, move, !!frames.current?.last))
+            }
           >
-            Use concept image
+            Reset cinematic prompt
           </button>
           <button
             className="outline-button"
+            disabled={!!busy || checking}
+            onClick={() => void refreshCatalog()}
+          >
+            <RefreshCw size={14} /> Refresh connection
+          </button>
+          <button
+            className="outline-button"
+            disabled={!!busy}
+            onClick={() => void selectConceptReference()}
+          >
+            Use selected concept image
+          </button>
+          <button className="outline-button" onClick={onToggleModelTools}>
+            {modelToolsVisible ? 'Hide model tools' : 'Open model tools'}
+          </button>
+          <label className="field-label">
+            MODEL CAMERA
+            <NativeSelect
+              value={selectedShot}
+              disabled={!!busy}
+              onChange={(e) => {
+                setSelectedShot(Number(e.target.value));
+                if (source === 'model') void selectConceptReference();
+              }}
+            >
+              {shots.map((s, i) => (
+                <NativeSelectOption key={s.id} value={i}>
+                  {s.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </label>
+          <p className="fineprint">
+            Model frames use the active 3D model, concept {spec.concept}. It is
+            an approximation of the architecture.
+          </p>
+          <button
+            className="outline-button"
             disabled={!api || !!busy}
-            onClick={() =>
-              guarded('Rendering model reference frames…', prepare)
-            }
+            onClick={() => void guarded('Rendering model frames…', prepare)}
           >
             Use model frames
           </button>
           <button
             className="outline-button"
             disabled={!api || !!busy}
-            onClick={() => {
-              api?.play({ ...shot, seconds });
-              onMessage(`Playing ${shot.name} in the live model canvas.`);
-            }}
+            onClick={() => api?.play({ ...shot, seconds })}
           >
-            <Play size={15} /> Preview camera move
+            <Play size={15} /> Preview model camera
           </button>
           <button
             className="outline-button"
             disabled={!api || !!busy}
-            onClick={() => guarded('Recording the original model…', record)}
+            onClick={() =>
+              void guarded('Recording the original model…', record)
+            }
           >
             <Film size={15} /> Record model clip
           </button>
           <button
             className="outline-button"
-            disabled={!!busy}
-            onClick={() => guarded('Exporting the video task…', exportFrames)}
+            disabled={!!busy || !!issue}
+            onClick={() =>
+              void guarded('Exporting cinematic task…', exportTask)
+            }
           >
             <Download size={15} /> Export video task
           </button>
-        </div>
-        {busy && (
-          <div className="film-progress">
-            <span>{busy}</span>
-            <Progress value={busy.includes('Recording') ? progress : null} />
-          </div>
-        )}
-        <div className="jobs">
-          <div className="section-kicker">
-            SAVED VIDEO JOBS{' '}
-            <button
-              className="plain"
-              onClick={() => guarded('Checking provider history…', reconcile)}
-            >
-              <RefreshCw size={13} /> Reconcile
-            </button>
-          </div>
-          {projectJobs.length === 0 ? (
-            <p className="muted">
-              No paid jobs submitted. Model recordings are saved separately in
-              this browser.
-            </p>
-          ) : (
-            projectJobs.map((job) => (
-              <div className="job" key={job.id}>
-                <div>
-                  <strong>
-                    {job.shot} · r{job.revision}
-                  </strong>
-                  <span className="job-status">
-                    {job.status.replaceAll('_', ' ')}
-                  </span>
-                  {job.cost && (
-                    <small>
-                      {Number(job.cost).toFixed(2)}{' '}
-                      {job.currency?.toUpperCase()} quote
-                    </small>
-                  )}
-                </div>
-                {job.error && (
-                  <p>
-                    {typeof job.error === 'string'
-                      ? job.error
-                      : job.error.message}
-                  </p>
-                )}
-                {job.status === 'completed' && (
-                  <>
-                    <video controls src={`/api/video?id=${job.id}&content=1`} />
-                    <a
-                      className="outline-button"
-                      href={`/api/video?id=${job.id}&content=1`}
-                    >
-                      <Download size={14} /> Download MP4
-                    </a>
-                    <div className="drift-check">
-                      <strong>Architectural drift review</strong>
-                      {[
-                        'Silhouette & proportions',
-                        'Facade bays & material identity',
-                        'Entrance, roof & landscape',
-                      ].map((label) => (
-                        <label key={label}>
-                          <Checkbox
-                            checked={job.review?.includes(label) || false}
-                            onCheckedChange={(checked) =>
-                              setJobs((js) =>
-                                js.map((j) =>
-                                  j.id === job.id
-                                    ? {
-                                        ...j,
-                                        review: checked
-                                          ? [...(j.review || []), label]
-                                          : (j.review || []).filter(
-                                              (x) => x !== label,
-                                            ),
-                                      }
-                                    : j,
-                                ),
-                              )
-                            }
-                          />
-                          {label}
-                        </label>
-                      ))}
-                      <p>
-                        {job.review?.length === 3
-                          ? 'Review recorded. Compare with the retained model clip before presenting.'
-                          : 'Unreviewed generated output. Compare it with the original model and supplied frames.'}
-                      </p>
-                    </div>
-                  </>
-                )}
-                {job.status === 'failed' && (
-                  <button
-                    className="plain"
-                    onClick={() => {
-                      setPrompt(job.prompt);
-                      setSeconds(job.seconds);
-                      setSelected(
-                        Math.max(
-                          0,
-                          shots.findIndex((s) => s.id === job.shot),
-                        ),
-                      );
-                      onMessage(
-                        'Failed job settings loaded. Review the reference and current price to retry.',
-                      );
-                    }}
-                  >
-                    <RefreshCw size={14} /> Load for retry
-                  </button>
-                )}
-                {['submission-unknown', 'submitting'].includes(job.status) && (
-                  <p>
-                    Do not resubmit until job history is reconciled. This may
-                    already be a paid job.
-                  </p>
-                )}
-              </div>
-            ))
+          {preview && (
+            <div className="film-video">
+              <video controls src={preview} />
+              <a
+                className="outline-button"
+                href={preview}
+                download={`placeform-model.${recordingExtension}`}
+              >
+                Download model recording
+              </a>
+            </div>
           )}
-          {pollError && (
-            <p className="inline-warning">
-              Status refresh failed: {pollError} The job has not been
-              resubmitted.
-            </p>
-          )}
-        </div>
-      </div>
-      <aside className="film-settings">
-        <div className="section-kicker">
-          PRODUCTION <span className="pill">AIAND</span>
-        </div>
-        <h3>Bring the study to life.</h3>
-        <p>
-          The selected concept image guides the architecture. You can also use
-          first and last frames from the live model.
-        </p>
-        <label className="field-label">
-          SHOT PROMPT
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            maxLength={7000}
-          />
-        </label>
-        <label className="field-label">
-          DURATION{' '}
-          <NativeSelect
-            value={seconds}
-            onChange={(e) => setSeconds(Number(e.target.value))}
-          >
-            {Array.from({ length: 12 }, (_, i) => i + 4).map((n) => (
-              <NativeSelectOption key={n} value={n}>
-                {n} seconds
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </label>
-        <div className="provider-card">
-          <div>
-            <span>MiniMax H3</span>
-            <small>768p · 16:9 · MP4</small>
-          </div>
-          <code>minimaxai/minimax-h3</code>
-          <p>
-            {price
-              ? `Live quote: ${(Number(price.per_second) * seconds).toFixed(2)} ${price.currency.toUpperCase()} for ${seconds} seconds.`
-              : checkingConnection
-                ? 'Checking the live price before generation.'
-                : 'Live price unavailable.'}
-          </p>
-          <p>
-            <output>
-              {checkingConnection
-                ? 'Checking AIand connection…'
-                : connectionError ||
-                  readinessError ||
-                  'Connected · video terms accepted'}
-            </output>
-          </p>
-          <a
-            href="https://console.aiand.com/video"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open AIand video console <ArrowUpRight size={12} />
-          </a>
-        </div>
-        <button
-          className="outline-button"
-          disabled={!!busy || checkingConnection}
-          onClick={() => void refreshCatalog()}
-        >
-          <RefreshCw size={14} /> Refresh video connection
-        </button>
-        <button
-          className="accent-button"
-          disabled={
-            checkingConnection ||
-            !!readinessError ||
-            !price ||
-            !firstURL ||
-            !!busy ||
-            prompt.length < 8
-          }
-          onClick={() => guarded('Submitting to AIand…', submit)}
-        >
-          Generate ·{' '}
-          {price
-            ? `${(Number(price.per_second) * seconds).toFixed(2)} ${price.currency.toUpperCase()}`
-            : 'Connect AIand'}{' '}
-          <ArrowUpRight size={15} />
-        </button>
-        {!firstURL && !checkingConnection && !readinessError && (
           <p className="fineprint">
-            Review the concept reference and prompt, then click Generate.
+            MiniMax H3 · paid API usage. Submitted renders cannot be stopped.
           </p>
-        )}
-        <p className="fineprint">
-          Paid API usage. Credentials stay on the server. Submitted renders
-          cannot be stopped. Download completed films within 30 days.
-        </p>
+        </details>
       </aside>
     </div>
   );

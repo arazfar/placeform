@@ -3228,3 +3228,51 @@ svg {
   max-height: 560px;
   object-fit: contain;
 }
+
+/* Film keeps the reference intact and puts the finished take first. */
+.cinematic-layout .cinematic-reference img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #080b0d;
+}
+.cinematic-layout .film-video video {
+  width: 100%;
+  max-height: 65vh;
+  background: #080b0d;
+}
+.cinematic-layout .cinematic-result {
+  margin-bottom: 24px;
+}
+.cinematic-layout .cinematic-result .section-kicker {
+  margin-bottom: 12px;
+}
+.cinematic-layout .film-settings > .accent-button {
+  width: 100%;
+  justify-content: center;
+}
+.cinematic-advanced {
+  border-top: 1px solid var(--line, #ddd);
+  margin-top: 24px;
+  padding-top: 18px;
+}
+.cinematic-advanced summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.cinematic-advanced > button {
+  width: 100%;
+  margin-bottom: 10px;
+}
+.cinematic-layout .film-settings textarea {
+  min-height: 220px;
+}
+.cinematic-layout .provider-card output {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cinematic-layout .job p {
+  line-height: 1.5;
+}

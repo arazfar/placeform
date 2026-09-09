@@ -1,4 +1,5 @@
 'use client';
+import { filmReference } from '@/lib/cinematic';
 import {
   demoConcepts,
   fixedDemoSpec,
@@ -168,6 +169,7 @@ export default function Studio() {
     } | null>(null),
     [sceneAPI, setSceneAPI] = useState<SceneAPI>(),
     [sceneMounted, setSceneMounted] = useState(false),
+    [filmModelVisible, setFilmModelVisible] = useState(false),
     [walk, setWalk] = useState(false),
     [sheet, setSheet] = useState<SheetId>('S01'),
     [busy, setBusy] = useState(''),
@@ -309,7 +311,8 @@ export default function Studio() {
       notify('Review a generated concept image before opening the model.');
       return;
     }
-    if (tab === 'model' || tab === 'film') setSceneMounted(true);
+    if (tab === 'model') setSceneMounted(true);
+    if (tab !== 'film') setFilmModelVisible(false);
   }, [tab, spec]);
   useEffect(() => {
     voice.current?.update(spec, element);
@@ -1101,7 +1104,10 @@ export default function Studio() {
             <div
               className={`model-layout ${tab === 'film' ? 'film-model-layout' : ''}`}
               style={{
-                display: tab === 'model' || tab === 'film' ? 'grid' : 'none',
+                display:
+                  tab === 'model' || (tab === 'film' && filmModelVisible)
+                    ? 'grid'
+                    : 'none',
               }}
             >
               <div className="model-stage">
@@ -1416,8 +1422,14 @@ export default function Studio() {
               }
             >
               <FilmPanel
-                key={`${spec.concept}:${spec.revision}`}
+                key={spec.id}
                 spec={spec}
+                reference={filmReference(spec, selected, c.name)}
+                modelToolsVisible={filmModelVisible}
+                onToggleModelTools={() => {
+                  setSceneMounted(true);
+                  setFilmModelVisible((v) => !v);
+                }}
                 api={sceneAPI}
                 onMessage={notify}
               />
