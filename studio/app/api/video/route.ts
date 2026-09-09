@@ -1,4 +1,5 @@
 import { AIandError, AIandVideo } from '@/lib/aiand-video';
+import { readVideoReference } from '@/lib/video-upload';
 import { secret, failure, sameOrigin, rateLimit } from '@/lib/server';
 const jobId = (id: string) => /^video_[A-Za-z0-9_-]{1,180}$/.test(id);
 function provider() {
@@ -66,16 +67,14 @@ export async function POST(req: Request) {
     );
   try {
     const api = provider();
+    // Binary images avoid the framework's multipart Server Action body limit.
     if (
-      (req.headers.get('content-type') || '').includes('multipart/form-data')
-    ) {
-      if (Number(req.headers.get('content-length') || 0) > 31 * 1024 * 1024)
-        return failure('Reference image is too large. Limit: 30 MiB.', 413);
-      const form = await req.formData(),
-        file = form.get('file');
-      if (!(file instanceof File)) return failure('Choose a reference image.');
-      return json(await api.upload(file));
-    }
+      (req.headers.get('content-type') || '')
+        .split(';')[0]
+        .trim()
+        .toLowerCase() !== 'application/json'
+    )
+      return json(await api.upload(await readVideoReference(req)));
     let body: unknown;
     try {
       body = await req.json();

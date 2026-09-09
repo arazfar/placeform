@@ -42,3 +42,7 @@ next-env.d.ts
 .dev.vars.*
 !.dev.vars.example
 *.tsbuildinfo
+
+# Local cinematic visual verification
+/output/
+/.playwright-cli/

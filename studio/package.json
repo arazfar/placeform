@@ -32,6 +32,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "1.31.0",
     "maplibre-gl": "^6.8.0",
+    "mediabunny": "^1.56.0",
     "react": "19.2.8",
     "react-day-picker": "9.8.1",
     "react-dom": "19.2.8",

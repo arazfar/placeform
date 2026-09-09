@@ -1,0 +1,530 @@
+{
+  "targetName": "Civic Dune",
+  "sourceImage": "/Users/arazfar/.codex/worktrees/3658/placeform/studio/public/assets/hackathon/datacenter_7.png",
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "landscaped architectural campus",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "architectural",
+        "sculptural",
+        "continuous-undulating-shell"
+      ],
+      "structureKind": [
+        "compound object",
+        "layered shell",
+        "repeated modules"
+      ],
+      "motionPotential": [
+        "static architectural model",
+        "whole-object transform",
+        "detachable assembly inspection"
+      ],
+      "materialFamilies": [
+        "satin-metal",
+        "glass",
+        "timber",
+        "planting",
+        "paving"
+      ],
+      "notes": "Agent visually inspected the original single architectural reference. Campus is the target extracted from a wider bay landscape; background skyline, bridge, water and neighboring forest are contextual scenery."
+    },
+    "complexity": {
+      "tier": "ultra-complex",
+      "scores": {
+        "silhouetteComplexity": 3,
+        "componentCount": 3,
+        "hierarchyDepth": 3,
+        "repetitionDensity": 3,
+        "materialLayerCount": 3,
+        "localDetailDensity": 3,
+        "occlusionRisk": 3,
+        "actionReadinessNeed": 2
+      },
+      "estimatedCounts": {
+        "macroComponents": 6,
+        "mesoComponents": 20,
+        "microFeatureGroups": 20,
+        "materialLayers": 6,
+        "repetitionSystems": 4
+      },
+      "reasoning": [
+        "A connected silver roof sweeps over multiple irregular offset landscaped courtyard voids; the surface bridges narrow connecting sections between the voids.",
+        "The near-left entrance is covered by a broad timber-lined arch with a small elliptical opening through its soffit; the right frontage forms a second broad glazed arch.",
+        "Roof edges become low at outer tips and rise substantially above entrances; mid-campus glazed edges follow the changing surface height.",
+        "Courtyard openings vary in length, angle and shape; this is not a regular array of independent donut roofs."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "ultra-complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Architectural identity requires broad spatial hierarchy plus repeated thin facade/roof detail, independent surfaces, material locality and clearly documented occluded elevations."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "component-zones",
+      "targetMinDetails": 16,
+      "note": "All twenty observed identity details are connected to actual component localFeatures entries in the sculpt spec. Subpixel material structure remains labeled inference.",
+      "details": [
+        {
+          "id": "c-detail-01",
+          "kind": "hole",
+          "description": "small elliptical entrance oculus",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-01"
+          }
+        },
+        {
+          "id": "c-detail-02",
+          "kind": "hole",
+          "description": "long narrow central courtyard",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-02"
+          }
+        },
+        {
+          "id": "c-detail-03",
+          "kind": "hole",
+          "description": "offset broad rear courtyard",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-03"
+          }
+        },
+        {
+          "id": "c-detail-04",
+          "kind": "hole",
+          "description": "irregular front-right planted courtyard",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-04"
+          }
+        },
+        {
+          "id": "c-detail-05",
+          "kind": "contour",
+          "description": "connected narrow roof bridges",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-05"
+          }
+        },
+        {
+          "id": "c-detail-06",
+          "kind": "contour",
+          "description": "broad timber-lined entrance arch",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-06"
+          }
+        },
+        {
+          "id": "c-detail-07",
+          "kind": "contour",
+          "description": "separate right-front glazed arch",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-07"
+          }
+        },
+        {
+          "id": "c-detail-08",
+          "kind": "contour",
+          "description": "low tapering outer roof edges",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-08"
+          }
+        },
+        {
+          "id": "c-detail-09",
+          "kind": "ridge",
+          "description": "standing seams draped over height field",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-09"
+          }
+        },
+        {
+          "id": "c-detail-10",
+          "kind": "bevel",
+          "description": "thin consistent closed roof fascia",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-10"
+          }
+        },
+        {
+          "id": "c-detail-11",
+          "kind": "gloss",
+          "description": "soft satin metal reflections",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-11"
+          }
+        },
+        {
+          "id": "c-detail-12",
+          "kind": "linework",
+          "description": "longitudinal timber underside grain",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-12"
+          }
+        },
+        {
+          "id": "c-detail-13",
+          "kind": "ridge",
+          "description": "slim vertical glazing mullions",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-13"
+          }
+        },
+        {
+          "id": "c-detail-14",
+          "kind": "gloss",
+          "description": "sky reflection with visible interior depth",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-14"
+          }
+        },
+        {
+          "id": "c-detail-15",
+          "kind": "emissive",
+          "description": "warm occupied interior behind arches",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-15"
+          }
+        },
+        {
+          "id": "c-detail-16",
+          "kind": "contour",
+          "description": "trees visible through courtyard apertures",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-16"
+          }
+        },
+        {
+          "id": "c-detail-17",
+          "kind": "groove",
+          "description": "recessed glazing under roof overhang",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-17"
+          }
+        },
+        {
+          "id": "c-detail-18",
+          "kind": "seam",
+          "description": "service enclosure panel divisions",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-18"
+          }
+        },
+        {
+          "id": "c-detail-19",
+          "kind": "ridge",
+          "description": "screened rear mechanical equipment",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-19"
+          }
+        },
+        {
+          "id": "c-detail-20",
+          "kind": "linework",
+          "description": "curving planted pedestrian paths",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "c-feature-20"
+          }
+        }
+      ]
+    },
+    "sourceImage": "/Users/arazfar/.codex/worktrees/3658/placeform/studio/public/assets/hackathon/datacenter_7.png",
+    "resolvedAssumptions": [
+      "Nominal campus scale is 112 by 84 metres, maximum architecture elevation 16 metres; reference supplies no measured dimensions.",
+      "Coordinate convention: Y up, X across the campus, foreground public entrance at positive Z.",
+      "Hidden back elevations, foundations and interiors are authored architectural inference with lower confidence.",
+      "Model fidelity concerns the campus only, excluding distant geographical scenery.",
+      "Procedural PBR finish is explicitly authorized by the accepted plan; no exact photo-derived texture or inverse-rendering claim."
+    ]
+  },
+  "qualityContract": {
+    "qualityBar": "ultra-complex",
+    "definitionOfDone": [
+      "Civic Dune retains each identity system: One connected undulating roof surface; Multiple irregular offset courtyard openings; Actual open entrance oculus; Broad entrance arches and narrow connectors; Low outer roof edges with fitted glazing.",
+      "All visible roof shells are indexed closed meshes with distinct top, underside and fascia regions; openings remain genuine voids.",
+      "Finite geometry, consistent winding and thickness, metre-scaled UVs, fitted glazing and no unintended intersections survive seven professionally lit review viewpoints.",
+      "Stable named assemblies expose selection and exploded inspection using identical part boundaries; GLBs reimport at metre scale with self-contained textures."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 5,
+      "mesoComponents": 16,
+      "microFeatureGroups": 8,
+      "materialLayers": 4,
+      "repetitionSystems": 2,
+      "reviewViewpoints": 5
+    },
+    "featureGroups": [
+      {
+        "id": "c-identity-1",
+        "name": "One connected undulating roof surface",
+        "required": true,
+        "qualityCriteria": [
+          "One connected undulating roof surface must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "c-identity-2",
+        "name": "Multiple irregular offset courtyard openings",
+        "required": true,
+        "qualityCriteria": [
+          "Multiple irregular offset courtyard openings must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "c-identity-3",
+        "name": "Actual open entrance oculus",
+        "required": true,
+        "qualityCriteria": [
+          "Actual open entrance oculus must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "c-identity-4",
+        "name": "Broad entrance arches and narrow connectors",
+        "required": true,
+        "qualityCriteria": [
+          "Broad entrance arches and narrow connectors must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "c-identity-5",
+        "name": "Low outer roof edges with fitted glazing",
+        "required": true,
+        "qualityCriteria": [
+          "Low outer roof edges with fitted glazing must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "One connected undulating roof surface",
+      "Multiple irregular offset courtyard openings",
+      "Actual open entrance oculus",
+      "Broad entrance arches and narrow connectors",
+      "Low outer roof edges with fitted glazing",
+      "Surface roughness and sky reflections do not read as uniform plastic.",
+      "Full-resolution detail reveals no faceting, overlaps, floating objects or transparency sorting artifacts."
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md)."
+    ]
+  },
+  "authoringInstruction": "Fill observed object class, complexity reasoning, featureGroups, visualDeltaChecks, and unknowns before generating or implementing ObjectSculptSpec.",
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "query": "Civic Dune continuous perforated shell roof irregular courtyard holes triangulation",
+    "index": {
+      "status": "hit",
+      "reason": "current",
+      "fingerprint": "6857e5ab528b42ac12f4f411f862610a0bffce8e47aee3610a7603c318072fe8"
+    },
+    "matches": [
+      {
+        "record_id": "core.shader-mapping-csg-boolean-operations-for-sub-mesh-composition",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.rendering_shader_mapping[3]",
+        "score": 3.161783240236,
+        "snippets": [
+          "... m\u00f4 h\u00ecnh h\u00f3a th\u1ee7 c\u00f4ng t\u1eebng bi\u1ebfn th\u1ec3. Recognition cues: Needed for hollowing barrels/handguards, drilling accessory-mount holes, or generating chamfered/cut geometric variants from primitive stacks D\u1ea5u hi\u1ec7u nh\u1eadn di\u1ec7n: C\u1ea7n khi kho\u00e9t r\u1ed7ng n\u00f2ng ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.rendering_shader_mapping[3]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      }
+    ]
+  },
+  "referenceAssessment": {
+    "suitability": "conditional",
+    "basis": "Clearly identifiable campus extracted from wider scenery; adequate visible shape and palette for a reference-faithful architectural interpretation, not photogrammetry.",
+    "architecturalCropNormalized": [
+      0.065,
+      0.215,
+      0.925,
+      0.55
+    ],
+    "visibleEvidence": [
+      "A connected silver roof sweeps over multiple irregular offset landscaped courtyard voids; the surface bridges narrow connecting sections between the voids.",
+      "The near-left entrance is covered by a broad timber-lined arch with a small elliptical opening through its soffit; the right frontage forms a second broad glazed arch.",
+      "Roof edges become low at outer tips and rise substantially above entrances; mid-campus glazed edges follow the changing surface height.",
+      "Courtyard openings vary in length, angle and shape; this is not a regular array of independent donut roofs."
+    ],
+    "criticalIdentityFeatures": [
+      "One connected undulating roof surface",
+      "Multiple irregular offset courtyard openings",
+      "Actual open entrance oculus",
+      "Broad entrance arches and narrow connectors",
+      "Low outer roof edges with fitted glazing"
+    ],
+    "hiddenRegionConfidence": {
+      "rearElevations": 0.45,
+      "interiors": 0.35,
+      "foundations": 0.2,
+      "occludedCourtyardEdges": 0.55
+    },
+    "materialFinishPolicy": "Independently authored procedural base-color, roughness and normal maps; source pixels guide palette only because oblique low-resolution lit surfaces cannot supply measured reflectance or de-lit texture."
+  }
+}

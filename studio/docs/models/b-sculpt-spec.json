@@ -1,0 +1,6332 @@
+{
+  "targetName": "Folded Horizon",
+  "targetId": "folded-horizon",
+  "schemaVersion": "2.1",
+  "terminologyProfile": {
+    "domain": "real-time procedural Three.js asset",
+    "geometryTerms": [
+      "silhouette",
+      "topology",
+      "primitive",
+      "bevel",
+      "chamfer",
+      "taper",
+      "bend",
+      "boolean cut",
+      "edge loop",
+      "surface normal",
+      "displacement"
+    ],
+    "materialTerms": [
+      "albedo",
+      "baseColor",
+      "roughness",
+      "metalness",
+      "normal map",
+      "bump map",
+      "ambient occlusion",
+      "cavity dirt",
+      "edge wear",
+      "clearcoat"
+    ],
+    "lightingTerms": [
+      "key light",
+      "fill light",
+      "rim light",
+      "HDRI/environment reflection",
+      "contact shadow"
+    ],
+    "descriptionRule": "Use measurable 3D graphics terms. Avoid vague words unless they are paired with concrete geometry/material/shader parameters."
+  },
+  "sourceImage": "/Users/arazfar/.codex/worktrees/3658/placeform/studio/public/assets/hackathon/datacenter_5.png",
+  "referenceCamera": {
+    "solved": false,
+    "fovDegrees": 35,
+    "aspect": 1.7768331562167907,
+    "orientation": {
+      "yaw": 32,
+      "pitch": 26,
+      "roll": 0
+    },
+    "positionHint": [
+      105,
+      74,
+      125
+    ],
+    "targetHint": [
+      0,
+      5,
+      0
+    ],
+    "note": "Initial inferred architectural hero camera. Fit by visual comparison of campus crop, not the full source panorama. This camera is not a solved calibration."
+  },
+  "suitability": "conditional",
+  "scores": {
+    "object_isolation": 2,
+    "silhouette_readability": 3,
+    "depth_inference": 2,
+    "primitive_decomposition": 3,
+    "material_procedurality": 2,
+    "occlusion_risk": 2,
+    "interaction_fit": 3
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "landscaped architectural campus",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "architectural",
+        "sculptural",
+        "layered-shell"
+      ],
+      "structureKind": [
+        "compound object",
+        "layered shell",
+        "repeated modules"
+      ],
+      "motionPotential": [
+        "static architectural model",
+        "whole-object transform",
+        "detachable assembly inspection"
+      ],
+      "materialFamilies": [
+        "satin-metal",
+        "glass",
+        "timber",
+        "planting",
+        "paving"
+      ],
+      "notes": "Agent visually inspected the original single architectural reference. Campus is the target extracted from a wider bay landscape; background skyline, bridge, water and neighboring forest are contextual scenery."
+    },
+    "complexity": {
+      "tier": "ultra-complex",
+      "scores": {
+        "silhouetteComplexity": 3,
+        "componentCount": 3,
+        "hierarchyDepth": 3,
+        "repetitionDensity": 3,
+        "materialLayerCount": 3,
+        "localDetailDensity": 3,
+        "occlusionRisk": 3,
+        "actionReadinessNeed": 2
+      },
+      "estimatedCounts": {
+        "macroComponents": 6,
+        "mesoComponents": 20,
+        "microFeatureGroups": 20,
+        "materialLayers": 6,
+        "repetitionSystems": 4
+      },
+      "reasoning": [
+        "Long pale metal roof ribbons are skewed relative to each other; their ridges peak at unequal locations and descend nearly to ground at some outer tips.",
+        "The closest public roof has a broad curved entrance arch with a deep golden timber underside, dark full-height mullions and glass set back from the edge.",
+        "The central ribbons make diagonal valleys and asymmetrical courtyards with glazing fitted to the changing roof edge.",
+        "Rear service volumes are flat-roofed rectilinear metal enclosures with parapets, screened plant and loading apron."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "ultra-complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Architectural identity requires broad spatial hierarchy plus repeated thin facade/roof detail, independent surfaces, material locality and clearly documented occluded elevations."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "component-zones",
+      "targetMinDetails": 16,
+      "note": "All twenty observed identity details are connected to actual component localFeatures entries in the sculpt spec. Subpixel material structure remains labeled inference.",
+      "details": [
+        {
+          "id": "b-detail-01",
+          "kind": "contour",
+          "description": "front roof arch with unequal shoulders",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-01"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-02",
+          "kind": "contour",
+          "description": "descending pointed ribbon tips",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-02"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-03",
+          "kind": "ridge",
+          "description": "raised standing seams following roof shape",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-03"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-04",
+          "kind": "linework",
+          "description": "subtle cross-panel joints",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-04"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-05",
+          "kind": "bevel",
+          "description": "thin closed metal fascia",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-05"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-06",
+          "kind": "contour",
+          "description": "diagonal valley between unequal ribbons",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-06"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-07",
+          "kind": "contour",
+          "description": "offset crest location per ribbon",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-07"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-08",
+          "kind": "linework",
+          "description": "longitudinal timber soffit strips",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-08"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-09",
+          "kind": "gloss",
+          "description": "satin metal broad highlights",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-09"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-10",
+          "kind": "gloss",
+          "description": "muted sky reflections in glass",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-10"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-11",
+          "kind": "groove",
+          "description": "entrance glazing setback",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-11"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-12",
+          "kind": "ridge",
+          "description": "thin mullion frames",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-12"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-13",
+          "kind": "contour",
+          "description": "open planted inter-ribbon courts",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-13"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-14",
+          "kind": "emissive",
+          "description": "restrained warm interior light",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-14"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-15",
+          "kind": "contour",
+          "description": "tree clusters outside circulation",
+          "observed": true,
+          "confidence": 0.85,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-15"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-16",
+          "kind": "bevel",
+          "description": "flat service roof parapet",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-16"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-17",
+          "kind": "ridge",
+          "description": "screened mechanical units",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-17"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-18",
+          "kind": "seam",
+          "description": "rear metal enclosure panel joints",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-18"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-19",
+          "kind": "contour",
+          "description": "low accessible entrance landing",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-19"
+          },
+          "realization": "unreported"
+        },
+        {
+          "id": "b-detail-20",
+          "kind": "linework",
+          "description": "paving joints around entrance",
+          "observed": true,
+          "confidence": 0.7,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "mapsTo": {
+            "ref": "b-feature-20"
+          },
+          "realization": "unreported"
+        }
+      ]
+    },
+    "sourceImage": "/Users/arazfar/.codex/worktrees/3658/placeform/studio/public/assets/hackathon/datacenter_5.png",
+    "resolvedAssumptions": [
+      "Nominal campus scale is 112 by 84 metres, maximum architecture elevation 16 metres; reference supplies no measured dimensions.",
+      "Coordinate convention: Y up, X across the campus, foreground public entrance at positive Z.",
+      "Hidden back elevations, foundations and interiors are authored architectural inference with lower confidence.",
+      "Model fidelity concerns the campus only, excluding distant geographical scenery.",
+      "Procedural PBR finish is explicitly authorized by the accepted plan; no exact photo-derived texture or inverse-rendering claim."
+    ]
+  },
+  "qualityContract": {
+    "qualityBar": "ultra-complex",
+    "definitionOfDone": [
+      "Folded Horizon retains each identity system: Individually shaped twisting ribbon profiles; Unequal peak locations and diagonal valleys; Low descending outer roof tips; Broad timber entrance soffit; Glazing fitted to curved roof edges.",
+      "All visible roof shells are indexed closed meshes with distinct top, underside and fascia regions; openings remain genuine voids.",
+      "Finite geometry, consistent winding and thickness, metre-scaled UVs, fitted glazing and no unintended intersections survive seven professionally lit review viewpoints.",
+      "Stable named assemblies expose selection and exploded inspection using identical part boundaries; GLBs reimport at metre scale with self-contained textures."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 5,
+      "mesoComponents": 16,
+      "microFeatureGroups": 8,
+      "materialLayers": 4,
+      "repetitionSystems": 2,
+      "reviewViewpoints": 5
+    },
+    "featureGroups": [
+      {
+        "id": "b-identity-1",
+        "name": "Individually shaped twisting ribbon profiles",
+        "required": true,
+        "qualityCriteria": [
+          "Individually shaped twisting ribbon profiles must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "b-identity-2",
+        "name": "Unequal peak locations and diagonal valleys",
+        "required": true,
+        "qualityCriteria": [
+          "Unequal peak locations and diagonal valleys must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "b-identity-3",
+        "name": "Low descending outer roof tips",
+        "required": true,
+        "qualityCriteria": [
+          "Low descending outer roof tips must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "b-identity-4",
+        "name": "Broad timber entrance soffit",
+        "required": true,
+        "qualityCriteria": [
+          "Broad timber entrance soffit must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      },
+      {
+        "id": "b-identity-5",
+        "name": "Glazing fitted to curved roof edges",
+        "required": true,
+        "qualityCriteria": [
+          "Glazing fitted to curved roof edges must be unmistakable from the reference-facing hero and coherent from reverse three-quarter."
+        ],
+        "evidenceRefs": [
+          "campus-architecture"
+        ],
+        "failureModes": [
+          "Identity-defining shape replaced by identical generic repeated modules.",
+          "Occluding details or lighting hide the required feature."
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "Individually shaped twisting ribbon profiles",
+      "Unequal peak locations and diagonal valleys",
+      "Low descending outer roof tips",
+      "Broad timber entrance soffit",
+      "Glazing fitted to curved roof edges",
+      "Surface roughness and sky reflections do not read as uniform plastic.",
+      "Full-resolution detail reveals no faceting, overlaps, floating objects or transparency sorting artifacts."
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ],
+    "mustNotDo": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ]
+  },
+  "qualityTargets": {
+    "targetFidelity": 0.8,
+    "mustMatch": [
+      "Individually shaped twisting ribbon profiles",
+      "Unequal peak locations and diagonal valleys",
+      "Low descending outer roof tips",
+      "Broad timber entrance soffit",
+      "Glazing fitted to curved roof edges"
+    ],
+    "niceToHave": [
+      "micro scratches, stains, chips, and dirt masks",
+      "secondary lighting match"
+    ],
+    "fpsTarget": 60,
+    "reviewViewpoints": [
+      "reference-hero",
+      "reverse-three-quarter",
+      "east",
+      "west",
+      "aerial",
+      "entrance-detail",
+      "dusk-hero"
+    ]
+  },
+  "selfCorrectLoop": {
+    "enabled": true,
+    "visualAcceptance": {
+      "reviewer": "ai-vision",
+      "threshold": 0.7,
+      "comparisonArtifactRequired": true,
+      "layerScoresRequired": true,
+      "codePixelDiffIsAcceptanceAuthority": false,
+      "scoringRule": "AI vision must inspect a side-by-side reference/render sheet and score the current pass from 0 to 1. Pixel-diff code may assist diagnostics but cannot approve a pass.",
+      "requiredLayerScores": [
+        "silhouetteProportion",
+        "componentStructure",
+        "formDetail",
+        "materialSurface",
+        "lightingCamera"
+      ],
+      "featureReviewPolicy": {
+        "enabled": true,
+        "reviewUnit": "semantic-subsystem",
+        "maxCriticalFeaturesPerPass": 5,
+        "maxImportantFeaturesPerPass": 3,
+        "criticalDefaultThreshold": 0.8,
+        "importantAverageThreshold": 0.65,
+        "adaptiveEscalation": true,
+        "singleImagePairOnly": true,
+        "selectionRule": "Choose only the most visually salient, identity-defining, user-prioritized, or high-risk semantic systems. Group repeated parts instead of reviewing every mesh. AI vision scores every selected feature from the same full reference/render pair."
+      }
+    },
+    "reviewAfterPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "allowedActions": [
+      "continue",
+      "refine-spec",
+      "refine-code",
+      "request-input",
+      "stop"
+    ],
+    "specRefineTriggers": [
+      "missing component",
+      "wrong primitive family",
+      "wrong proportions",
+      "material layer under-specified",
+      "local feature not traceable to viewEvidence",
+      "reference ambiguity discovered during implementation"
+    ],
+    "codeRefineTriggers": [
+      "spec is adequate but generated geometry/material does not match",
+      "browser render differs from reference",
+      "performance budget exceeded",
+      "lighting hides geometry or material response"
+    ],
+    "stopCriteria": [
+      "target fidelity reached or user accepts current approximation",
+      "remaining gaps require new reference images or manual art"
+    ],
+    "screenshotPolicy": {
+      "requiredForPasses": [
+        "blockout",
+        "structural-pass",
+        "form-refinement",
+        "material-pass",
+        "surface-pass",
+        "lighting-pass",
+        "interaction-pass"
+      ],
+      "preferredCapture": "in-app-browser-screenshot",
+      "fallbackCapture": "user-supplied-screenshot-path",
+      "minimumEvidence": "Each visual pass needs a reference image, rendered screenshot, side-by-side comparison sheet, AI vision score, layer scores, and critique before choosing continue.",
+      "reviewPairRule": "Compare the same camera/viewpoint whenever possible; do not judge a front reference against a random render angle.",
+      "acceptanceAuthority": "AI vision review of the comparison sheet. Code-generated pixel similarity is not sufficient evidence."
+    }
+  },
+  "featureReviewTargets": [
+    {
+      "id": "b-identity-1",
+      "name": "Individually shaped twisting ribbon profiles",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "ribbon-front"
+      ],
+      "evidenceRefs": [
+        "campus-architecture"
+      ]
+    },
+    {
+      "id": "b-identity-2",
+      "name": "Unequal peak locations and diagonal valleys",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "ribbon-middle"
+      ],
+      "evidenceRefs": [
+        "campus-architecture"
+      ]
+    },
+    {
+      "id": "b-identity-3",
+      "name": "Low descending outer roof tips",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "ribbon-high"
+      ],
+      "evidenceRefs": [
+        "campus-architecture"
+      ]
+    },
+    {
+      "id": "b-identity-4",
+      "name": "Broad timber entrance soffit",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "ribbon-rear"
+      ],
+      "evidenceRefs": [
+        "campus-architecture"
+      ]
+    },
+    {
+      "id": "b-identity-5",
+      "name": "Glazing fitted to curved roof edges",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "ribbon-rear"
+      ],
+      "evidenceRefs": [
+        "campus-architecture"
+      ]
+    },
+    {
+      "id": "b-surface-finish",
+      "name": "Reference palette, independent texture response and coherent glazing",
+      "tier": "critical",
+      "passIds": [
+        "material-pass",
+        "surface-pass",
+        "lighting-pass"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "evidenceRefs": [
+        "campus-architecture"
+      ]
+    }
+  ],
+  "sculptPipeline": {
+    "passGateMode": "locked-sequential",
+    "passOrder": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "currentPass": "blockout",
+    "completedPasses": [],
+    "lastCompletedPass": "",
+    "blockedReason": "blockout requires a browser screenshot and self-correction review before structural-pass unlocks",
+    "nextRequiredEvidence": [
+      "blockout browser render screenshot from your agent's browser/screenshot tool",
+      "side-by-side reference/render comparison sheet",
+      "AI vision score >= 0.7 with layer scores and mismatch critique",
+      "critical semantic feature scores from the same image pair meeting their individual thresholds",
+      "reviewHistory entry for blockout with action=continue"
+    ]
+  },
+  "lookDevTargets": {
+    "qualityPriority": "reference-fidelity",
+    "materialPass": {
+      "albedoPaletteRequired": true,
+      "roughnessVariationRequired": true,
+      "normalOrBumpRequired": true,
+      "localOverridesRequired": true,
+      "minimumTextureResolution": 1024,
+      "preferredTextureResolution": 2048,
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "requiredSurfaceFrequencyBands": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "geometryReliefRequiredWhenSilhouetteAffected": true,
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": false,
+        "targetThreshold": 0.7,
+        "limitation": "Accepted plan explicitly calls for independent procedural textures. Reference is one perspective-lit concept rendering; genuine de-lit independent PBR maps cannot be recovered from those pixels. Palette and material families are visual observations; channel values and microscopic texture are authored inference, not extraction results."
+      },
+      "mustAvoid": [
+        "single flat albedo per material",
+        "uniform roughness",
+        "albedo texture reused as roughness/height/normal/AO",
+        "single-frequency random noise",
+        "plastic-looking smooth bark, stone, cloth, foliage, or aged material",
+        "local color/detail described only in prose without material masks",
+        "claiming exact PBR recovery when confidence is below the target threshold"
+      ]
+    },
+    "lightingPass": {
+      "requiredTerms": [
+        "key light",
+        "fill light",
+        "rim or environment light",
+        "exposure",
+        "tone mapping",
+        "background",
+        "contact shadow"
+      ],
+      "mustAvoid": [
+        "ambient-only lighting",
+        "flat value range",
+        "missing contact shadow",
+        "reference lighting copied without separating material readability"
+      ]
+    },
+    "screenshotReview": [
+      "Compare albedo palette and local color zones.",
+      "Compare roughness/normal/bump response under light.",
+      "Compare cavity dirt, edge wear, stains, moss, scratches, or other local masks.",
+      "Compare key/fill/rim structure, exposure, tone mapping, background, and contact shadows.",
+      "Capture a neutral-light render to verify material readability without reference lighting.",
+      "Capture a grazing-light close-up to expose flat normals, uniform roughness, tiling, and plastic highlights.",
+      "Capture a reference-matched render from the same camera framing as the source."
+    ]
+  },
+  "actionReadiness": {
+    "contract": "Every macro/meso component should be generated as a stable named Object3D pivot node with a mesh child, action metadata, optional sockets, collider proxy, and destruction metadata.",
+    "defaultRigType": "action-ready-static-rig",
+    "rootMotionNode": "root",
+    "requiredComponentFields": [
+      "id",
+      "parent",
+      "transform",
+      "attachment for child appendages, connectors, limbs, tubes, handles, legs, horns, wings, branches, or cables",
+      "actionProfile.animationRole",
+      "actionProfile.pivot",
+      "actionProfile.collider",
+      "actionProfile.destruction"
+    ],
+    "transformChannels": [
+      "translate",
+      "rotate",
+      "scale",
+      "bend",
+      "twist",
+      "detach",
+      "visibility",
+      "material-state"
+    ],
+    "authoringRules": [
+      "Do not collapse independently movable parts into one mesh.",
+      "Put transforms on component pivot groups, not only on raw meshes.",
+      "For attached child parts, put the pivot at the semantic root/socket and build visible geometry from localStart to localEnd.",
+      "Represent hinge, socket, detachable, and breakable intent even when no animation is implemented yet.",
+      "Use simplified collider proxies for runtime physics instead of visual mesh colliders by default."
+    ],
+    "destructionPolicy": {
+      "defaultBreakable": false,
+      "fractureGroupNaming": "Use stable semantic names such as body-shell, left-hinge, glass-panel, branch-segment.",
+      "debrisStrategy": "Prefer detachable component groups and a small number of procedural fragments over random mesh explosion."
+    }
+  },
+  "assumptions": [],
+  "coordinateFrame": {
+    "front": "camera-facing side in the reference image",
+    "up": "image up direction",
+    "scaleReference": "unit scale; adjust after first browser render"
+  },
+  "silhouette": {
+    "boundingShape": "",
+    "aspectRatios": [],
+    "symmetry": "",
+    "dominantCurves": [],
+    "negativeSpaces": [],
+    "landmarks": []
+  },
+  "viewEvidence": [
+    {
+      "id": "full-object",
+      "view": "reference-hero",
+      "imageRegion": {
+        "x": 0,
+        "y": 0,
+        "width": 1,
+        "height": 1,
+        "units": "normalized"
+      },
+      "observations": [
+        "The source is a concept rendering with broader bay and landscape context."
+      ],
+      "confidence": 0.95
+    },
+    {
+      "id": "campus-architecture",
+      "view": "reference-hero",
+      "imageRegion": {
+        "x": 0.07,
+        "y": 0.225,
+        "width": 0.88,
+        "height": 0.54,
+        "units": "normalized"
+      },
+      "observations": [
+        "Long pale metal roof ribbons are skewed relative to each other; their ridges peak at unequal locations and descend nearly to ground at some outer tips.",
+        "The closest public roof has a broad curved entrance arch with a deep golden timber underside, dark full-height mullions and glass set back from the edge.",
+        "The central ribbons make diagonal valleys and asymmetrical courtyards with glazing fitted to the changing roof edge.",
+        "Rear service volumes are flat-roofed rectilinear metal enclosures with parapets, screened plant and loading apron."
+      ],
+      "confidence": 0.9
+    }
+  ],
+  "componentTree": [
+    {
+      "id": "root",
+      "name": "Folded Horizon",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.85,
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Invisible hierarchy root; no solid placeholder mesh.",
+      "geometryDescriptor": {
+        "topologyIntent": "Invisible hierarchy root; no solid placeholder mesh.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": null,
+      "attachment": null,
+      "dimensions": {
+        "width": 112,
+        "height": 16,
+        "depth": 84,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "assembly",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "paving"
+        }
+      },
+      "material": "paving",
+      "materialLayers": [
+        "paving"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Invisible hierarchy root; no solid placeholder mesh."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(179, 178, 163, 1)",
+        "secondaryAlbedo": "rgba(206, 204, 186, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "root",
+        "explodeWithParent": false,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      },
+      "renderGeometry": false
+    },
+    {
+      "id": "landscape",
+      "name": "Campus landscape and public circulation",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.85,
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Stepped landscaped ground encloses the architectural campus and leaves public circulation open.",
+      "geometryDescriptor": {
+        "topologyIntent": "Stepped landscaped ground encloses the architectural campus and leaves public circulation open.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentId": "root",
+        "parentSocket": "root/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "assembly support",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 112,
+        "height": 2,
+        "depth": 84,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "assembly",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "planting"
+        }
+      },
+      "material": "planting",
+      "materialLayers": [
+        "planting"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Stepped landscaped ground encloses the architectural campus and leaves public circulation open."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(98, 103, 74, 1)",
+        "secondaryAlbedo": "rgba(136, 144, 106, 1)",
+        "materialClass": "unknown",
+        "materialClassConfidence": 0.4,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "landscape",
+        "explodeWithParent": false,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-front",
+      "name": "Broad entrance ribbon",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.85,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Long pale metal roof ribbons are skewed relative to each other; their ridges peak at unequal locations and descend nearly to ground at some outer tips. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+      "geometryDescriptor": {
+        "topologyIntent": "Long pale metal roof ribbons are skewed relative to each other; their ridges peak at unequal locations and descend nearly to ground at some outer tips. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentId": "root",
+        "parentSocket": "root/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0.0,
+          24
+        ],
+        "contactType": "assembly support",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 92,
+        "height": 5.0,
+        "depth": 19,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0.0,
+          24
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "assembly",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Long pale metal roof ribbons are skewed relative to each other; their ridges peak at unequal locations and descend nearly to ground at some outer tips. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-front",
+        "explodeWithParent": false,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-middle",
+      "name": "Twisting middle ribbon",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.85,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "The closest public roof has a broad curved entrance arch with a deep golden timber underside, dark full-height mullions and glass set back from the edge. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+      "geometryDescriptor": {
+        "topologyIntent": "The closest public roof has a broad curved entrance arch with a deep golden timber underside, dark full-height mullions and glass set back from the edge. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentId": "root",
+        "parentSocket": "root/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          2.2,
+          8
+        ],
+        "contactType": "assembly support",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 88,
+        "height": 5.3,
+        "depth": 19,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          2.2,
+          8
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "assembly",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "The closest public roof has a broad curved entrance arch with a deep golden timber underside, dark full-height mullions and glass set back from the edge. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-middle",
+        "explodeWithParent": false,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-high",
+      "name": "High diagonal ribbon",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.85,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "The central ribbons make diagonal valleys and asymmetrical courtyards with glazing fitted to the changing roof edge. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+      "geometryDescriptor": {
+        "topologyIntent": "The central ribbons make diagonal valleys and asymmetrical courtyards with glazing fitted to the changing roof edge. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentId": "root",
+        "parentSocket": "root/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          4.4,
+          -8
+        ],
+        "contactType": "assembly support",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 84,
+        "height": 5.6,
+        "depth": 19,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          4.4,
+          -8
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "assembly",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "The central ribbons make diagonal valleys and asymmetrical courtyards with glazing fitted to the changing roof edge. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-high",
+        "explodeWithParent": false,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-rear",
+      "name": "Rear folded ribbon",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.85,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Rear service volumes are flat-roofed rectilinear metal enclosures with parapets, screened plant and loading apron. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+      "geometryDescriptor": {
+        "topologyIntent": "Rear service volumes are flat-roofed rectilinear metal enclosures with parapets, screened plant and loading apron. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentId": "root",
+        "parentSocket": "root/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          6.6000000000000005,
+          -24
+        ],
+        "contactType": "assembly support",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 5.9,
+        "depth": 19,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          6.6000000000000005,
+          -24
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "assembly",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Rear service volumes are flat-roofed rectilinear metal enclosures with parapets, screened plant and loading apron. Nominal assembly dimensions are proportion assumptions. Final authoritative bounds come from constructed geometry."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-rear",
+        "explodeWithParent": false,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-front-shell",
+      "name": "Broad entrance ribbon shell",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+      "geometryDescriptor": {
+        "topologyIntent": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-front",
+      "attachment": {
+        "parentId": "ribbon-front",
+        "parentSocket": "ribbon-front/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 0.32,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-front",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-01",
+          "kind": "contour",
+          "description": "front roof arch with unequal shoulders",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-02",
+          "kind": "contour",
+          "description": "descending pointed ribbon tips",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-05",
+          "kind": "bevel",
+          "description": "thin closed metal fascia",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-front",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-front-glazing",
+      "name": "Broad entrance ribbon glazing",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+      "geometryDescriptor": {
+        "topologyIntent": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-front",
+      "attachment": {
+        "parentId": "ribbon-front",
+        "parentSocket": "ribbon-front/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-front",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "glass"
+        }
+      },
+      "material": "glass",
+      "materialLayers": [
+        "glass"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-10",
+          "kind": "gloss",
+          "description": "muted sky reflections in glass",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "material-response"
+        },
+        {
+          "id": "b-feature-11",
+          "kind": "groove",
+          "description": "entrance glazing setback",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-14",
+          "kind": "emissive",
+          "description": "restrained warm interior light",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "material-response"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(145, 164, 168, 1)",
+        "secondaryAlbedo": "rgba(187, 201, 200, 1)",
+        "materialClass": "glass",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-front",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-front-soffit",
+      "name": "Broad entrance ribbon soffit",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+      "geometryDescriptor": {
+        "topologyIntent": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-front",
+      "attachment": {
+        "parentId": "ribbon-front",
+        "parentSocket": "ribbon-front/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-front",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "timber"
+        }
+      },
+      "material": "timber",
+      "materialLayers": [
+        "timber"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-08",
+          "kind": "linework",
+          "description": "longitudinal timber soffit strips",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Timber material region shares shell underside vertices; never overlay a second coplanar shell."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(150, 112, 71, 1)",
+        "secondaryAlbedo": "rgba(184, 149, 99, 1)",
+        "materialClass": "wood",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-front",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-front-seams",
+      "name": "Broad entrance ribbon seams",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "curve-sweep",
+      "topologyClass": "surface-relief",
+      "topologyRationale": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+      "geometryDescriptor": {
+        "topologyIntent": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-front",
+      "attachment": {
+        "parentId": "ribbon-front",
+        "parentSocket": "ribbon-front/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-front",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-front",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-middle-shell",
+      "name": "Twisting middle ribbon shell",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+      "geometryDescriptor": {
+        "topologyIntent": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-middle",
+      "attachment": {
+        "parentId": "ribbon-middle",
+        "parentSocket": "ribbon-middle/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 0.32,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-middle",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-07",
+          "kind": "contour",
+          "description": "offset crest location per ribbon",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-middle",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-middle-glazing",
+      "name": "Twisting middle ribbon glazing",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+      "geometryDescriptor": {
+        "topologyIntent": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-middle",
+      "attachment": {
+        "parentId": "ribbon-middle",
+        "parentSocket": "ribbon-middle/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-middle",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "glass"
+        }
+      },
+      "material": "glass",
+      "materialLayers": [
+        "glass"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-12",
+          "kind": "ridge",
+          "description": "thin mullion frames",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(145, 164, 168, 1)",
+        "secondaryAlbedo": "rgba(187, 201, 200, 1)",
+        "materialClass": "glass",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-middle",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-middle-soffit",
+      "name": "Twisting middle ribbon soffit",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+      "geometryDescriptor": {
+        "topologyIntent": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-middle",
+      "attachment": {
+        "parentId": "ribbon-middle",
+        "parentSocket": "ribbon-middle/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-middle",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "timber"
+        }
+      },
+      "material": "timber",
+      "materialLayers": [
+        "timber"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Timber material region shares shell underside vertices; never overlay a second coplanar shell."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(150, 112, 71, 1)",
+        "secondaryAlbedo": "rgba(184, 149, 99, 1)",
+        "materialClass": "wood",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-middle",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-middle-seams",
+      "name": "Twisting middle ribbon seams",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "curve-sweep",
+      "topologyClass": "surface-relief",
+      "topologyRationale": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+      "geometryDescriptor": {
+        "topologyIntent": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-middle",
+      "attachment": {
+        "parentId": "ribbon-middle",
+        "parentSocket": "ribbon-middle/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-middle",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-03",
+          "kind": "ridge",
+          "description": "raised standing seams following roof shape",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-middle",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-high-shell",
+      "name": "High diagonal ribbon shell",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+      "geometryDescriptor": {
+        "topologyIntent": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-high",
+      "attachment": {
+        "parentId": "ribbon-high",
+        "parentSocket": "ribbon-high/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 0.32,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-high",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-06",
+          "kind": "contour",
+          "description": "diagonal valley between unequal ribbons",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-09",
+          "kind": "gloss",
+          "description": "satin metal broad highlights",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "material-response"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-high",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-high-glazing",
+      "name": "High diagonal ribbon glazing",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+      "geometryDescriptor": {
+        "topologyIntent": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-high",
+      "attachment": {
+        "parentId": "ribbon-high",
+        "parentSocket": "ribbon-high/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-high",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "glass"
+        }
+      },
+      "material": "glass",
+      "materialLayers": [
+        "glass"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(145, 164, 168, 1)",
+        "secondaryAlbedo": "rgba(187, 201, 200, 1)",
+        "materialClass": "glass",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-high",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-high-soffit",
+      "name": "High diagonal ribbon soffit",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+      "geometryDescriptor": {
+        "topologyIntent": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-high",
+      "attachment": {
+        "parentId": "ribbon-high",
+        "parentSocket": "ribbon-high/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-high",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "timber"
+        }
+      },
+      "material": "timber",
+      "materialLayers": [
+        "timber"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Timber material region shares shell underside vertices; never overlay a second coplanar shell."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(150, 112, 71, 1)",
+        "secondaryAlbedo": "rgba(184, 149, 99, 1)",
+        "materialClass": "wood",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-high",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-high-seams",
+      "name": "High diagonal ribbon seams",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "curve-sweep",
+      "topologyClass": "surface-relief",
+      "topologyRationale": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+      "geometryDescriptor": {
+        "topologyIntent": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-high",
+      "attachment": {
+        "parentId": "ribbon-high",
+        "parentSocket": "ribbon-high/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-high",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-high",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-rear-shell",
+      "name": "Rear folded ribbon shell",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "extrude",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+      "geometryDescriptor": {
+        "topologyIntent": "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-rear",
+      "attachment": {
+        "parentId": "ribbon-rear",
+        "parentSocket": "ribbon-rear/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 0.32,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-rear",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-04",
+          "kind": "linework",
+          "description": "subtle cross-panel joints",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-16",
+          "kind": "bevel",
+          "description": "flat service roof parapet",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-17",
+          "kind": "ridge",
+          "description": "screened mechanical units",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-18",
+          "kind": "seam",
+          "description": "rear metal enclosure panel joints",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Indexed closed ribbon shell from individually authored nonidentical height profiles; separate top, underside and fascia groups; 0.32 metre thickness."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-rear",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-rear-glazing",
+      "name": "Rear folded ribbon glazing",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+      "geometryDescriptor": {
+        "topologyIntent": "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-rear",
+      "attachment": {
+        "parentId": "ribbon-rear",
+        "parentSocket": "ribbon-rear/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-rear",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "glass"
+        }
+      },
+      "material": "glass",
+      "materialLayers": [
+        "glass"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Continuous fitted glass facade samples roof underside exactly, set back 1.5 metres from the fascia."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(145, 164, 168, 1)",
+        "secondaryAlbedo": "rgba(187, 201, 200, 1)",
+        "materialClass": "glass",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-rear",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-rear-soffit",
+      "name": "Rear folded ribbon soffit",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "plane-card",
+      "topologyClass": "conforming-shell",
+      "topologyRationale": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+      "geometryDescriptor": {
+        "topologyIntent": "Timber material region shares shell underside vertices; never overlay a second coplanar shell.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-rear",
+      "attachment": {
+        "parentId": "ribbon-rear",
+        "parentSocket": "ribbon-rear/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-rear",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "timber"
+        }
+      },
+      "material": "timber",
+      "materialLayers": [
+        "timber"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Timber material region shares shell underside vertices; never overlay a second coplanar shell."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(150, 112, 71, 1)",
+        "secondaryAlbedo": "rgba(184, 149, 99, 1)",
+        "materialClass": "wood",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-rear",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "ribbon-rear-seams",
+      "name": "Rear folded ribbon seams",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "curve-sweep",
+      "topologyClass": "surface-relief",
+      "topologyRationale": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+      "geometryDescriptor": {
+        "topologyIntent": "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "ribbon-rear",
+      "attachment": {
+        "parentId": "ribbon-rear",
+        "parentSocket": "ribbon-rear/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 80,
+        "height": 4,
+        "depth": 16,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ribbon-rear",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "satin-metal"
+        }
+      },
+      "material": "satin-metal",
+      "materialLayers": [
+        "satin-metal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "0.025 metre standing seams sample the ribbon top plus a small offset; no straight floating lines."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(190, 195, 197, 1)",
+        "secondaryAlbedo": "rgba(222, 224, 221, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "ribbon-rear",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "landscape-paths",
+      "name": "Landscape paths",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "extrude",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Connected pedestrian paving and accessible landings; retain 2.4 metre clear main circulation.",
+      "geometryDescriptor": {
+        "topologyIntent": "Connected pedestrian paving and accessible landings; retain 2.4 metre clear main circulation.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "landscape",
+      "attachment": {
+        "parentId": "landscape",
+        "parentSocket": "landscape/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "landscape",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "paving"
+        }
+      },
+      "material": "paving",
+      "materialLayers": [
+        "paving"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-20",
+          "kind": "linework",
+          "description": "paving joints around entrance",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Connected pedestrian paving and accessible landings; retain 2.4 metre clear main circulation."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(179, 178, 163, 1)",
+        "secondaryAlbedo": "rgba(206, 204, 186, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "landscape",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "landscape-planting",
+      "name": "Landscape planting",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Deterministic varied tree, shrub and grass clusters outside clear circulation and off building faces.",
+      "geometryDescriptor": {
+        "topologyIntent": "Deterministic varied tree, shrub and grass clusters outside clear circulation and off building faces.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "landscape",
+      "attachment": {
+        "parentId": "landscape",
+        "parentSocket": "landscape/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "landscape",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "planting"
+        }
+      },
+      "material": "planting",
+      "materialLayers": [
+        "planting"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-13",
+          "kind": "contour",
+          "description": "open planted inter-ribbon courts",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        },
+        {
+          "id": "b-feature-15",
+          "kind": "contour",
+          "description": "tree clusters outside circulation",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Deterministic varied tree, shrub and grass clusters outside clear circulation and off building faces."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(98, 103, 74, 1)",
+        "secondaryAlbedo": "rgba(136, 144, 106, 1)",
+        "materialClass": "unknown",
+        "materialClassConfidence": 0.4,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "landscape",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "landscape-stairs",
+      "name": "Landscape stairs",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Attached repeated steps reach adjacent exact landing elevations; no floating upper or lower step.",
+      "geometryDescriptor": {
+        "topologyIntent": "Attached repeated steps reach adjacent exact landing elevations; no floating upper or lower step.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "landscape",
+      "attachment": {
+        "parentId": "landscape",
+        "parentSocket": "landscape/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "landscape",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "sandstone"
+        }
+      },
+      "material": "sandstone",
+      "materialLayers": [
+        "sandstone"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "b-feature-19",
+          "kind": "contour",
+          "description": "low accessible entrance landing",
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "realization": "geometry"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Attached repeated steps reach adjacent exact landing elevations; no floating upper or lower step."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(184, 163, 137, 1)",
+        "secondaryAlbedo": "rgba(210, 191, 163, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "landscape",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    },
+    {
+      "id": "landscape-furniture",
+      "name": "Landscape furniture",
+      "level": "meso",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.7,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Benches, sparse scale figures and planted-site furnishings remain outside door swings and routes.",
+      "geometryDescriptor": {
+        "topologyIntent": "Benches, sparse scale figures and planted-site furnishings remain outside door swings and routes.",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "metre-scaled local surface coordinates with a shared authored axis",
+        "normalStrategy": "outward winding; crease splits at fascia and slab edges; smooth normals only across continuous roof surface"
+      },
+      "parent": "landscape",
+      "attachment": {
+        "parentId": "landscape",
+        "parentSocket": "landscape/origin",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "contactType": "surface-mounted",
+        "overlap": 0.02,
+        "gapTolerance": 0.005,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "dimensions": {
+        "width": 1,
+        "height": 1,
+        "depth": 1,
+        "units": "metres",
+        "confidence": 0.6
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "attached detail",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false,
+          "notes": "Replace with sphere/capsule/compound proxy when the object shape demands it."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "landscape",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "timber"
+        }
+      },
+      "material": "timber",
+      "materialLayers": [
+        "timber"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "campus-architecture"
+      ],
+      "details": [
+        "Benches, sparse scale figures and planted-site furnishings remain outside door swings and routes."
+      ],
+      "fidelityTier": "reference-faithful architectural interpretation",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(150, 112, 71, 1)",
+        "secondaryAlbedo": "rgba(184, 149, 99, 1)",
+        "materialClass": "wood",
+        "materialClassConfidence": 0.8,
+        "evidenceRefs": [
+          "campus-architecture"
+        ]
+      },
+      "runtimeContract": {
+        "assemblyId": "landscape",
+        "explodeWithParent": true,
+        "retainRestTransform": true,
+        "pickUsesAssemblyId": true
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "sandstone",
+      "name": "sandstone",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#B8A389",
+      "color": "#8A7A5F",
+      "albedo": {
+        "dominant": "#B8A389",
+        "secondary": [
+          "#D2BFA3"
+        ],
+        "samplingNotes": "Approximate agent-observed palette from supplied image; photo illumination is not baked into the albedo."
+      },
+      "colorVariation": {
+        "palette": [
+          "#B8A389",
+          "#D2BFA3"
+        ],
+        "pattern": "fine horizontal striation; 0.6 by 1.8 metre coursing",
+        "amplitude": 0.06,
+        "heightCorrelation": 0.15
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "metre-scaled UV",
+        "repeat": [
+          1,
+          1
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "UV 1 equals one metre on facade/roof; roof seams follow authored surface parameterization."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 0.25,
+          "amplitude": 0.04,
+          "role": "broad restrained color variation"
+        },
+        {
+          "id": "meso",
+          "frequency": 2,
+          "amplitude": 0.02,
+          "role": "panel or board texture response"
+        },
+        {
+          "id": "micro",
+          "frequency": 40,
+          "amplitude": 0.006,
+          "role": "fine grain roughness breakup under grazing highlights"
+        }
+      ],
+      "roughness": {
+        "base": 0.82,
+        "variation": 0.035,
+        "map": "independent deterministic roughness field",
+        "localResponse": "restrained architectural finish; avoid exaggerated wear"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0
+      },
+      "normal": {
+        "pattern": "fine horizontal striation; 0.6 by 1.8 metre coursing",
+        "strength": 0.1,
+        "scale": 1,
+        "space": "tangent OpenGL positive Y"
+      },
+      "bump": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.12,
+        "contactShadowBias": 0.1,
+        "notes": "Independent geometric contact response; no dark source shadows baked into color."
+      },
+      "wear": {
+        "edgeWear": 0.0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "sandstone-edge-response",
+          "mask": "panel-edge distance",
+          "roughness": 0.7899999999999999,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "note": "Subtle edge/cavity locality is inference, not damage."
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Wall face is pale warm stone; exact lithology and relief are inferred."
+    },
+    {
+      "id": "satin-metal",
+      "name": "satin-metal",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#BEC3C5",
+      "color": "#8A7A5F",
+      "albedo": {
+        "dominant": "#BEC3C5",
+        "secondary": [
+          "#DEE0DD"
+        ],
+        "samplingNotes": "Approximate agent-observed palette from supplied image; photo illumination is not baked into the albedo."
+      },
+      "colorVariation": {
+        "palette": [
+          "#BEC3C5",
+          "#DEE0DD"
+        ],
+        "pattern": "subtle fine rolled sheet texture with 0.75 metre standing seams",
+        "amplitude": 0.06,
+        "heightCorrelation": 0.15
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "metre-scaled UV",
+        "repeat": [
+          1,
+          1
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "UV 1 equals one metre on facade/roof; roof seams follow authored surface parameterization."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 0.25,
+          "amplitude": 0.04,
+          "role": "broad restrained color variation"
+        },
+        {
+          "id": "meso",
+          "frequency": 2,
+          "amplitude": 0.02,
+          "role": "panel or board texture response"
+        },
+        {
+          "id": "micro",
+          "frequency": 40,
+          "amplitude": 0.006,
+          "role": "fine grain roughness breakup under grazing highlights"
+        }
+      ],
+      "roughness": {
+        "base": 0.46,
+        "variation": 0.035,
+        "map": "independent deterministic roughness field",
+        "localResponse": "restrained architectural finish; avoid exaggerated wear"
+      },
+      "metalness": {
+        "base": 0.65,
+        "variation": 0
+      },
+      "normal": {
+        "pattern": "subtle fine rolled sheet texture with 0.75 metre standing seams",
+        "strength": 0.1,
+        "scale": 1,
+        "space": "tangent OpenGL positive Y"
+      },
+      "bump": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.12,
+        "contactShadowBias": 0.1,
+        "notes": "Independent geometric contact response; no dark source shadows baked into color."
+      },
+      "wear": {
+        "edgeWear": 0.0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "satin-metal-edge-response",
+          "mask": "panel-edge distance",
+          "roughness": 0.43000000000000005,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "note": "Subtle edge/cavity locality is inference, not damage."
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Silver roof is consistent with satin architectural sheet metal; alloy and coating are inferred."
+    },
+    {
+      "id": "timber",
+      "name": "timber",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#967047",
+      "color": "#8A7A5F",
+      "albedo": {
+        "dominant": "#967047",
+        "secondary": [
+          "#B89563"
+        ],
+        "samplingNotes": "Approximate agent-observed palette from supplied image; photo illumination is not baked into the albedo."
+      },
+      "colorVariation": {
+        "palette": [
+          "#967047",
+          "#B89563"
+        ],
+        "pattern": "longitudinal grain and 0.15 metre board widths",
+        "amplitude": 0.06,
+        "heightCorrelation": 0.15
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "metre-scaled UV",
+        "repeat": [
+          1,
+          1
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "UV 1 equals one metre on facade/roof; roof seams follow authored surface parameterization."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 0.25,
+          "amplitude": 0.04,
+          "role": "broad restrained color variation"
+        },
+        {
+          "id": "meso",
+          "frequency": 2,
+          "amplitude": 0.02,
+          "role": "panel or board texture response"
+        },
+        {
+          "id": "micro",
+          "frequency": 40,
+          "amplitude": 0.006,
+          "role": "fine grain roughness breakup under grazing highlights"
+        }
+      ],
+      "roughness": {
+        "base": 0.66,
+        "variation": 0.035,
+        "map": "independent deterministic roughness field",
+        "localResponse": "restrained architectural finish; avoid exaggerated wear"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0
+      },
+      "normal": {
+        "pattern": "longitudinal grain and 0.15 metre board widths",
+        "strength": 0.1,
+        "scale": 1,
+        "space": "tangent OpenGL positive Y"
+      },
+      "bump": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.12,
+        "contactShadowBias": 0.1,
+        "notes": "Independent geometric contact response; no dark source shadows baked into color."
+      },
+      "wear": {
+        "edgeWear": 0.0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "timber-edge-response",
+          "mask": "panel-edge distance",
+          "roughness": 0.63,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "note": "Subtle edge/cavity locality is inference, not damage."
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Golden soffit and interior timber observed; species and clearcoat are inferred."
+    },
+    {
+      "id": "glass",
+      "name": "glass",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#91A4A8",
+      "color": "#8A7A5F",
+      "albedo": {
+        "dominant": "#91A4A8",
+        "secondary": [
+          "#BBC9C8"
+        ],
+        "samplingNotes": "Approximate agent-observed palette from supplied image; photo illumination is not baked into the albedo."
+      },
+      "colorVariation": {
+        "palette": [
+          "#91A4A8",
+          "#BBC9C8"
+        ],
+        "pattern": "low-amplitude roughness; no artificial patterned normal",
+        "amplitude": 0.06,
+        "heightCorrelation": 0.15
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "metre-scaled UV",
+        "repeat": [
+          1,
+          1
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "UV 1 equals one metre on facade/roof; roof seams follow authored surface parameterization."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 0.25,
+          "amplitude": 0.04,
+          "role": "broad restrained color variation"
+        },
+        {
+          "id": "meso",
+          "frequency": 2,
+          "amplitude": 0.02,
+          "role": "panel or board texture response"
+        },
+        {
+          "id": "micro",
+          "frequency": 40,
+          "amplitude": 0.006,
+          "role": "fine grain roughness breakup under grazing highlights"
+        }
+      ],
+      "roughness": {
+        "base": 0.16,
+        "variation": 0.035,
+        "map": "independent deterministic roughness field",
+        "localResponse": "restrained architectural finish; avoid exaggerated wear"
+      },
+      "metalness": {
+        "base": 0.05,
+        "variation": 0
+      },
+      "normal": {
+        "pattern": "low-amplitude roughness; no artificial patterned normal",
+        "strength": 0.01,
+        "scale": 1,
+        "space": "tangent OpenGL positive Y"
+      },
+      "bump": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.12,
+        "contactShadowBias": 0.1,
+        "notes": "Independent geometric contact response; no dark source shadows baked into color."
+      },
+      "wear": {
+        "edgeWear": 0.0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "glass-edge-response",
+          "mask": "panel-edge distance",
+          "roughness": 0.13,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "note": "Subtle edge/cavity locality is inference, not damage."
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Sky reflections and visible occupied interior establish glazing, but tint and laminate are inferred.",
+      "transmission": 0.25,
+      "opacity": 0.72,
+      "ior": 1.5,
+      "depthWrite": false
+    },
+    {
+      "id": "planting",
+      "name": "planting",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#62674A",
+      "color": "#8A7A5F",
+      "albedo": {
+        "dominant": "#62674A",
+        "secondary": [
+          "#88906A"
+        ],
+        "samplingNotes": "Approximate agent-observed palette from supplied image; photo illumination is not baked into the albedo."
+      },
+      "colorVariation": {
+        "palette": [
+          "#62674A",
+          "#88906A"
+        ],
+        "pattern": "irregular broad foliage and dry grass patches",
+        "amplitude": 0.06,
+        "heightCorrelation": 0.15
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "metre-scaled UV",
+        "repeat": [
+          1,
+          1
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "UV 1 equals one metre on facade/roof; roof seams follow authored surface parameterization."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 0.25,
+          "amplitude": 0.04,
+          "role": "broad restrained color variation"
+        },
+        {
+          "id": "meso",
+          "frequency": 2,
+          "amplitude": 0.02,
+          "role": "panel or board texture response"
+        },
+        {
+          "id": "micro",
+          "frequency": 40,
+          "amplitude": 0.006,
+          "role": "fine grain roughness breakup under grazing highlights"
+        }
+      ],
+      "roughness": {
+        "base": 0.94,
+        "variation": 0.035,
+        "map": "independent deterministic roughness field",
+        "localResponse": "restrained architectural finish; avoid exaggerated wear"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0
+      },
+      "normal": {
+        "pattern": "irregular broad foliage and dry grass patches",
+        "strength": 0.1,
+        "scale": 1,
+        "space": "tangent OpenGL positive Y"
+      },
+      "bump": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.12,
+        "contactShadowBias": 0.1,
+        "notes": "Independent geometric contact response; no dark source shadows baked into color."
+      },
+      "wear": {
+        "edgeWear": 0.0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "planting-edge-response",
+          "mask": "panel-edge distance",
+          "roughness": 0.9099999999999999,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "note": "Subtle edge/cavity locality is inference, not damage."
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Drought-tolerant shrub and grass palette observed; species distribution inferred."
+    },
+    {
+      "id": "paving",
+      "name": "paving",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#B3B2A3",
+      "color": "#8A7A5F",
+      "albedo": {
+        "dominant": "#B3B2A3",
+        "secondary": [
+          "#CECCBA"
+        ],
+        "samplingNotes": "Approximate agent-observed palette from supplied image; photo illumination is not baked into the albedo."
+      },
+      "colorVariation": {
+        "palette": [
+          "#B3B2A3",
+          "#CECCBA"
+        ],
+        "pattern": "fine granular cementitious texture with 2 metre joints",
+        "amplitude": 0.06,
+        "heightCorrelation": 0.15
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "metre-scaled UV",
+        "repeat": [
+          1,
+          1
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "UV 1 equals one metre on facade/roof; roof seams follow authored surface parameterization."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 0.25,
+          "amplitude": 0.04,
+          "role": "broad restrained color variation"
+        },
+        {
+          "id": "meso",
+          "frequency": 2,
+          "amplitude": 0.02,
+          "role": "panel or board texture response"
+        },
+        {
+          "id": "micro",
+          "frequency": 40,
+          "amplitude": 0.006,
+          "role": "fine grain roughness breakup under grazing highlights"
+        }
+      ],
+      "roughness": {
+        "base": 0.86,
+        "variation": 0.035,
+        "map": "independent deterministic roughness field",
+        "localResponse": "restrained architectural finish; avoid exaggerated wear"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0
+      },
+      "normal": {
+        "pattern": "fine granular cementitious texture with 2 metre joints",
+        "strength": 0.1,
+        "scale": 1,
+        "space": "tangent OpenGL positive Y"
+      },
+      "bump": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.12,
+        "contactShadowBias": 0.1,
+        "notes": "Independent geometric contact response; no dark source shadows baked into color."
+      },
+      "wear": {
+        "edgeWear": 0.0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "paving-edge-response",
+          "mask": "panel-edge distance",
+          "roughness": 0.83,
+          "evidenceRefs": [
+            "campus-architecture"
+          ],
+          "note": "Subtle edge/cavity locality is inference, not damage."
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Pale site paving observed; stone versus concrete uncertain."
+    }
+  ],
+  "repetitionSystems": [
+    {
+      "id": "facade-rhythm",
+      "componentRefs": [
+        "ribbon-front-glazing",
+        "ribbon-front-seams",
+        "ribbon-middle-glazing",
+        "ribbon-middle-seams",
+        "ribbon-high-glazing",
+        "ribbon-high-seams",
+        "ribbon-rear-glazing",
+        "ribbon-rear-seams"
+      ],
+      "buildsGeometry": true,
+      "realization": "instanced-cluster or assembly-local merged geometry",
+      "distribution": "Equal local facade rhythm following authored irregular boundaries; clipped to sampled roof height.",
+      "seed": 4101
+    },
+    {
+      "id": "landscape-rhythm",
+      "componentRefs": [
+        "landscape-planting"
+      ],
+      "buildsGeometry": true,
+      "realization": "instanced-cluster",
+      "distribution": "Deterministic exclusion-aware clustered scatter with 3 canopy silhouettes, varied height and palette; exclude paths, buildings and court apertures.",
+      "seed": 4102
+    },
+    {
+      "id": "interior-rhythm",
+      "componentRefs": [
+        "ribbon-front"
+      ],
+      "buildsGeometry": true,
+      "realization": "assembly-local instancing",
+      "distribution": "Sparse furniture, columns and warm ceiling lights behind public glazing, inferred where unseen.",
+      "seed": 4103
+    },
+    {
+      "id": "roof-service-rhythm",
+      "componentRefs": [
+        "ribbon-rear"
+      ],
+      "buildsGeometry": true,
+      "realization": "instanced-cluster",
+      "distribution": "Ordered low roof plant modules inside parapets and screening; omit from public planted terraces.",
+      "seed": 4104
+    }
+  ],
+  "buildPasses": [
+    {
+      "id": "blockout",
+      "goal": "Match macro silhouette and proportions.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "Silhouette reads correctly without materials.",
+        "Quality contract has named all required macro feature groups before code generation.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "structural-pass",
+      "goal": "Build the component hierarchy implied by the pre-spec complexity assessment.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "Macro, meso, and repeated structures meet qualityContract.minimumSpecDepth.",
+        "Parent-child relations, joints, seams, sockets, and contact points are explicit.",
+        "Every attached child appendage/connector has parentSocket, localStart/localEnd, contactType, embedDepth or overlap, and gapTolerance.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "form-refinement",
+      "goal": "Refine shape, deformation, bevels, tapers, curves, asymmetry, and visible local geometry.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "Important visible forms are represented in component geometryDescriptor, deformations, localFeatures, or repetitionSystems.",
+        "Endpoint-based child parts are rooted at their attachment sockets and do not visibly float away from parents.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "material-pass",
+      "goal": "Match material color, roughness, bump, and local variation.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "Reference-derived albedo palette records dominant, secondary, and accent colors per visible material.",
+        "Each important material defines roughness variation and at least one normal/bump/displacement response.",
+        "Local material overrides, dirt/wear/stains/moss/chips/scratches or equivalent masks are tied to evidenceRefs.",
+        "Thin, transparent, reflective, wet, or fibrous materials document alpha/transmission/clearcoat/metalness/fiber response when relevant.",
+        "Generated preview uses procedural albedo/roughness/bump texture or vertex color variation instead of one flat color.",
+        "Generated preview uses independent PBR maps at 1024px or higher for the quality-first tier.",
+        "Procedural map finish follows the explicitly documented single-render evidence limitation; no extraction confidence or exact-material claim is invented.",
+        "Macro, meso, and micro surface frequency bands are visible at the intended review distance without obvious tiling.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "surface-pass",
+      "goal": "Add procedural surface locality such as normal/bump/displacement, AO, dirt, stains, chips, grain, moss, scratches, and wear.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "Every required material feature group has local overrides or surfaceDetail tied to evidenceRefs.",
+        "A grazing-angle close-up proves that normal/height detail breaks highlights naturally and does not read as smooth plastic.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "lighting-pass",
+      "goal": "Make material and form readable under neutral turntable lighting plus optional reference lighting.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "lightingFromPhoto identifies key light direction/color/intensity, fill light, rim or environment light, and ambient color.",
+        "Exposure, tone mapping, background color/gradient, shadow softness, and contact shadow behavior are specified.",
+        "Lighting does not hide geometry/material gaps and screenshots can be compared fairly to the reference.",
+        "Neutral, grazing, and reference-matched lighting checks distinguish material errors from lighting errors.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "interaction-pass",
+      "goal": "Make the model ready for future animation, transformation, physics, or destruction.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "Macro and movable meso components have stable pivot nodes.",
+        "Sockets, collider proxies, and destruction metadata are present for future runtime actions.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "optimization-pass",
+      "goal": "Protect runtime performance after visual fidelity is accepted.",
+      "componentRefs": [
+        "root",
+        "landscape",
+        "ribbon-front",
+        "ribbon-middle",
+        "ribbon-high",
+        "ribbon-rear"
+      ],
+      "acceptance": [
+        "Triangle count, draw calls, instancing, LOD strategy, and FPS target are documented or verified.",
+        "Repeated detail is instanced or simplified where possible without breaking silhouette/material believability."
+      ]
+    }
+  ],
+  "visualEvidence": [],
+  "reviewHistory": [],
+  "lodPlan": [
+    {
+      "tier": "near",
+      "distance": 0,
+      "strategy": "full component tree and material layers"
+    },
+    {
+      "tier": "far",
+      "distance": 30,
+      "strategy": "merge static components and reduce local feature geometry"
+    }
+  ],
+  "performanceBudget": {
+    "qualityPriority": "reference-fidelity",
+    "targetTriangles": 600000,
+    "maxDrawCalls": 250,
+    "textureSize": 1024,
+    "fpsTarget": 30,
+    "optimizationPolicy": "Reach accepted visual fidelity first, then optimize without removing reference-critical geometry or surface layers."
+  },
+  "lightingFromPhoto": [
+    "Directional warm-neutral sunlight from elevated front-left; model a key around [65,95,75] and verify against the source crop shadow direction.",
+    "Cool sky fill plus an environment map provides broad metal highlights and glass reflections; interiors have restrained warm local light.",
+    "ACES filmic tone mapping and exposure near 1.0, tuned to avoid white metal clipping; pale neutral background; contact shadows ground walls and planting.",
+    "Use the same scene lighting for app and export, with 2048 pixel interactive shadows and 4096 pixel final capture shadows. Dusk shifts key intensity and activates warm rooms without blowing out glazing."
+  ],
+  "proceduralStrategy": [
+    "Preserve buildDemoModel(id), Three.js/React Three Fiber integration, fixed catalog and existing persistence/Film interfaces.",
+    "Keep authored geometry data, reusable indexed-shell helpers and deterministic independent PBR generation separate.",
+    "Expose stable assembly IDs, entrance landmarks, measured bounds and rest transforms; exploded layout scales offsets around campus center.",
+    "Create watertight roof shells and fitted facades; attach seams/soffits/trim to parent assemblies.",
+    "Inspect reference hero then reverse, east, west, aerial, entrance-detail and dusk hero before acceptance."
+  ],
+  "animationAnchors": [
+    "root pivot node supports whole-object translation, rotation, scale, and visibility changes",
+    "component pivot groups support later local transforms without rebuilding geometry"
+  ],
+  "destructionAnchors": [
+    "actionProfile.destruction.fractureGroup marks detachable or breakable component sets",
+    "component seams and sockets define plausible break points instead of random explosions"
+  ],
+  "risks": [
+    "Single-view reference permits a coherent architectural interpretation, not exact geometry or measured material properties.",
+    "Skyline and trees affect full-image silhouette metrics; compare the identified campus crop and inspect architecture manually.",
+    "All seven review views and runtime geometry tests are still pending; this document records requirements, not fabricated passes.",
+    "Hidden elevations, internal structural system, stair dimensions and furniture are inferred and are not suitable for construction documentation."
+  ],
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "query": "Folded Horizon architectural twisting metal shell roof timber soffit indexed geometry",
+    "index": {
+      "status": "hit",
+      "reason": "current",
+      "fingerprint": "6857e5ab528b42ac12f4f411f862610a0bffce8e47aee3610a7603c318072fe8"
+    },
+    "matches": [
+      {
+        "record_id": "core.pbr-anisotropy",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.material_pbr[6]",
+        "score": 2.97305122627,
+        "snippets": [
+          "Directional specular stretching seen on brushed or grooved metal, where reflections elongate along the grain direction. Hi\u1ec7n t\u01b0\u1ee3ng ph\u1ea3n x\u1ea1 specular k\u00e9o d\u00e0i theo m\u1ed9t h\u01b0\u1edbng, th\u1ea5y tr\u00ean kim lo\u1ea1i \u0111\u01b0\u1ee3c ch\u1ea3i x\u01b0\u1edbc ho\u1eb7c c\u00f3 r\u00e3nh, ph\u1ea3n x\u1ea1 k\u00e9o d\u00e0i theo ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.material_pbr[6]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      },
+      {
+        "record_id": "core.pbr-metalness",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.material_pbr[0]",
+        "score": 2.829638435022,
+        "snippets": [
+          "Binary or scalar property defining whether a surface is dielectric (0.0) or conductive metal (1.0); intermediate values blend the two. Thu\u1ed9c t\u00ednh nh\u1ecb ph\u00e2n ho\u1eb7c v\u00f4 h\u01b0\u1edbng x\u00e1c \u0111\u1ecbnh b\u1ec1 m\u1eb7t l\u00e0 \u0111i\u1ec7n m\u00f4i (0.0) hay kim lo\u1ea1i d\u1eabn \u0111i\u1ec7n (1.0); gi\u00e1 tr\u1ecb trung ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.material_pbr[0]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      },
+      {
+        "record_id": "core.shader-mapping-reconstruction-metadata-schema",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.rendering_shader_mapping[15]",
+        "score": 2.439172579366,
+        "snippets": [
+          "A structured metadata envelope (identity, extraction provenance, geometry stats, texture-slot mapping, rights) accompanying each reconstructed asset to drive and audit the pipeline. M\u1ed9t g\u00f3i metadata c\u00f3 c\u1ea5u tr\u00fac (\u0111\u1ecbnh danh, ngu\u1ed3n g\u1ed1c tr\u00edch xu\u1ea5t, ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.rendering_shader_mapping[15]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      }
+    ]
+  },
+  "referenceAssessment": {
+    "suitability": "conditional",
+    "basis": "Clearly identifiable campus extracted from wider scenery; adequate visible shape and palette for a reference-faithful architectural interpretation, not photogrammetry.",
+    "architecturalCropNormalized": [
+      0.07,
+      0.225,
+      0.88,
+      0.54
+    ],
+    "visibleEvidence": [
+      "Long pale metal roof ribbons are skewed relative to each other; their ridges peak at unequal locations and descend nearly to ground at some outer tips.",
+      "The closest public roof has a broad curved entrance arch with a deep golden timber underside, dark full-height mullions and glass set back from the edge.",
+      "The central ribbons make diagonal valleys and asymmetrical courtyards with glazing fitted to the changing roof edge.",
+      "Rear service volumes are flat-roofed rectilinear metal enclosures with parapets, screened plant and loading apron."
+    ],
+    "criticalIdentityFeatures": [
+      "Individually shaped twisting ribbon profiles",
+      "Unequal peak locations and diagonal valleys",
+      "Low descending outer roof tips",
+      "Broad timber entrance soffit",
+      "Glazing fitted to curved roof edges"
+    ],
+    "hiddenRegionConfidence": {
+      "rearElevations": 0.45,
+      "interiors": 0.35,
+      "foundations": 0.2,
+      "occludedCourtyardEdges": 0.55
+    },
+    "materialFinishPolicy": "Independently authored procedural base-color, roughness and normal maps; source pixels guide palette only because oblique low-resolution lit surfaces cannot supply measured reflectance or de-lit texture."
+  },
+  "worldDimensions": {
+    "units": "metres",
+    "campusWidth": 112,
+    "campusDepth": 84,
+    "maximumArchitecturalHeight": 16,
+    "source": "project constraint; relative geometry inferred from supplied image"
+  },
+  "semanticCaution": "Each repeated major assembly has its own geometry/profile; semantic detail parts remain attached during exploded inspection.",
+  "authoredGeometryContract": {
+    "ribbons": "Four authored roof functions with unequal widths, skew, crest heights and crest positions. Peaks should not be parallel centered sinusoidal arches.",
+    "valleys": "Diagonal valleys separate ribbons with deliberately visible glazed or planted gaps, not roof self-intersections.",
+    "tips": "Front outer tips drop to approximately 1.5-2.5 metres while public arch rises roughly 8-12 metres, within the 16 metre architecture cap.",
+    "soffit": "Front entrance underside is broad timber region on the same shell; underside shares geometry rather than using intersecting curved overlay mesh.",
+    "fit": "Sample glazing upper vertices and standing seams from the exact roof function; check no seam floats over a valley or terminates off the roof."
+  }
+}

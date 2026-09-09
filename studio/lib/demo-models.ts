@@ -1,732 +1,560 @@
 import * as THREE from 'three';
-import type { ConceptId, Feature } from './spec';
+import type { ConceptId } from './spec';
 import { demoConcept } from './demo-catalog';
-
-/** Fixed, single-image architectural reconstructions. Hidden sides and dimensions are inferred.
- * X lateral, +Z public entrance, Y up. Campus envelopes fit 112 × 84 metres.
- * Parts are named independently, with deterministic instanced landscaping and facade details. */
+import { entrances } from './demo-presentation';
+import {
+  AssemblyBuilder,
+  roofShell,
+  ribbonShell,
+  roofSampler,
+  ellipse,
+  inside,
+  type P2,
+} from './models/geometry';
+import { createMaterials } from './models/materials';
+import { createDetails } from './models/details';
+import { createLandscape } from './models/landscape';
+import {
+  MODEL_STAGE,
+  terraces,
+  ribbons,
+  ribbonSurface,
+  duneOutline,
+  duneCourts,
+  duneHeight,
+  halls,
+  pavilions,
+} from './models/reference-data';
+export { setExplode } from './models/geometry';
+/** Deterministic reference-authored exterior reconstructions. X lateral, Y up, +Z arrival. */
 export function buildDemoModel(id: ConceptId): THREE.Group {
-  const root = new THREE.Group();
-  root.name = demoConcept(id).name;
-  root.userData = { concept: id, approximate: true, bounds: [112, 16, 84] };
-  const material = (color: string, roughness = 0.7, metalness = 0) =>
-    new THREE.MeshStandardMaterial({ color, roughness, metalness });
-  const stone = material('#bba88d'),
-    paving = material('#c7bda8'),
-    silver = material('#c7cccf', 0.38, 0.52),
-    timber = material('#a67c48', 0.76),
-    dark = material('#454b48', 0.55, 0.25),
-    soil = material('#7d8060'),
-    grass = material('#606e46');
-  const glass = new THREE.MeshPhysicalMaterial({
-    color: '#a9b5ad',
-    metalness: 0.3,
-    roughness: 0.16,
-    transparent: true,
-    opacity: 0.45,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-  const glow = material('#e9c78f', 0.65);
-  glow.emissive.set('#e4a552');
-  glow.emissiveIntensity = 0.28;
-  const trunk = material('#74634b'),
-    leaves = [material('#354e38'), material('#526442'), material('#718052')];
-  const cube = new THREE.BoxGeometry(1, 1, 1),
-    sphere = new THREE.IcosahedronGeometry(1, 1),
-    cylinder = new THREE.CylinderGeometry(0.7, 1, 1, 7);
-  const batches = new Map<
-    string,
-    {
-      geometry: THREE.BufferGeometry;
-      material: THREE.Material;
-      matrices: THREE.Matrix4[];
-      feature: Feature;
-    }
-  >();
-  function instance(
-    name: string,
-    geometry: THREE.BufferGeometry,
-    mat: THREE.Material,
-    position: number[],
-    scale: number[],
-    feature: Feature = 'landscape',
-    angle = 0,
-  ) {
-    let b = batches.get(name);
-    if (!b) {
-      b = { geometry, material: mat, matrices: [], feature };
-      batches.set(name, b);
-    }
-    b.matrices.push(
-      new THREE.Matrix4().compose(
-        new THREE.Vector3(...(position as [number, number, number])),
-        new THREE.Quaternion().setFromEuler(new THREE.Euler(0, angle, 0)),
-        new THREE.Vector3(...(scale as [number, number, number])),
-      ),
-    );
+  const b = new AssemblyBuilder(),
+    m = createMaterials(),
+    detail = createDetails(b, m);
+  const { facade } = detail;
+  b.root.name = demoConcept(id).name;
+  b.root.userData = {
+    concept: id,
+    approximate: true,
+    version: 2,
+    stage: MODEL_STAGE,
+    bounds: [112, 16, 84],
+  };
+  const { planting } = createLandscape(b, m, id);
+  function interiorLight(part: THREE.Group, x: number, y: number, z: number) {
+    const light = new THREE.PointLight('#ffd39b', 40, 22, 2);
+    light.position.set(x, y, z);
+    light.name = part.name + ' interior light';
+    light.userData = { interiorPoint: true, feature: 'facade' };
+    part.add(light);
   }
-  function mesh(
-    name: string,
-    geometry: THREE.BufferGeometry,
-    mat: THREE.Material,
-    feature: Feature,
-    parent = root,
-  ) {
-    const m = new THREE.Mesh(geometry, mat);
-    m.name = name;
-    m.userData.feature = feature;
-    m.castShadow = true;
-    m.receiveShadow = true;
-    parent.add(m);
-    return m;
-  }
-  function box(
-    name: string,
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-    mat: THREE.Material,
-    feature: Feature = 'massing',
-  ) {
-    const m = mesh(name, cube, mat, feature);
-    m.position.set(x, y, z);
-    m.scale.set(w, h, d);
-    return m;
-  }
-  let seed = 84217;
-  function random() {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 4294967296;
-  }
-  function tree(x: number, z: number, y = 0, size = 1) {
-    instance(
-      'Tree trunks',
-      cylinder,
-      trunk,
-      [x, y + 2.2 * size, z],
-      [0.22 * size, 4.4 * size, 0.22 * size],
-    );
-    for (let k = 0; k < 3; k++)
-      instance(
-        `Tree crowns ${k}`,
-        sphere,
-        leaves[k],
-        [
-          x + (random() - 0.5) * size,
-          y + (4 + k * 0.7) * size,
-          z + (random() - 0.5) * size,
-        ],
-        [1.35 * size, (1.8 - k * 0.25) * size, 1.3 * size],
-      );
-  }
-  function shrubs(x: number, z: number, y = 0, scale = 1) {
-    instance(
-      'Low native shrubs',
-      sphere,
-      leaves[2],
-      [x, y + 0.4 * scale, z],
-      [0.65 * scale, 0.45 * scale, 0.6 * scale],
-    );
-  }
-  function planting(
-    name: string,
-    x: number,
-    z: number,
-    w: number,
-    d: number,
-    y = 0,
-    count = 35,
-  ) {
-    box(name, x, y + 0.12, z, w, 0.24, d, grass, 'landscape');
-    for (let i = 0; i < count; i++)
-      shrubs(
-        x + (random() - 0.5) * (w - 1),
-        z + (random() - 0.5) * (d - 1),
-        y + 0.24,
-        0.6 + random(),
-      );
-  }
-  function facade(
-    name: string,
-    x: number,
-    z: number,
-    w: number,
-    h: number,
-    y = 0,
-  ) {
-    box(`${name} glazing`, x, y + h / 2, z, w, h, 0.14, glass, 'facade');
-    box(`${name} interior floor`, x, y + 0.12, z - 2, w, 0.24, 4, paving);
-    box(
-      `${name} warm interior`,
-      x,
-      y + h * 0.43,
-      z - 2.6,
-      w - 1,
-      h * 0.75,
-      0.12,
-      glow,
-      'facade',
-    );
-    for (let xx = x - w / 2; xx <= x + w / 2; xx += 1.6)
-      instance(
-        'Glazing mullions',
-        cube,
-        dark,
-        [xx, y + h / 2, z + 0.13],
-        [0.09, h, 0.16],
-        'facade',
-      );
-    instance(
-      'Glazing transoms',
-      cube,
-      dark,
-      [x, y + h * 0.65, z + 0.13],
-      [w, 0.07, 0.16],
-      'facade',
-    );
-  }
-  function equipment(x: number, z: number, y: number, count = 5) {
-    for (let i = 0; i < count; i++) {
-      instance(
-        'Rooftop mechanical units',
-        cube,
-        silver,
-        [x + i * 3.4, y + 0.65, z],
-        [2.3, 1.3, 2.5],
+  if (id === 'A')
+    for (const [i, t] of terraces.entries()) {
+      const p = b.part(`Terrace ${i + 1} sandstone and garden`),
+        { x, z, w, d, y, h } = t;
+      const fractions = [
+        [-0.5, -0.34, -0.22, 0.16, 0.32, 0.5],
+        [-0.5, -0.28, -0.17, 0.26, 0.36, 0.5],
+        [-0.5, -0.39, -0.24, 0.06, 0.17, 0.5],
+        [-0.5, -0.27, -0.16, 0.2, 0.39, 0.5],
+      ][i];
+      const setbacks = [
+        [3, 5, 0, 0, 5, 2],
+        [1, 1, 4, 4, 0, 2],
+        [4, 0, 0, 5, 5, 2],
+        [0, 3, 3, 0, 0, 1],
+      ][i];
+      const front: P2[] = fractions.map((f, j) => [
+        x + w * f,
+        z + d / 2 - setbacks[j],
+      ]);
+      const outline: P2[] = [
+        ...front,
+        [x + w / 2, z - d / 2],
+        [x - w / 2, z - d / 2],
+      ];
+      b.slab(p, outline, Math.min(0, y - 0.3), Math.max(0.3, y + 0.3), m.stone);
+      b.mesh(
+        p,
+        `Terrace ${i + 1} closed roof shell`,
+        roofShell(outline, [], () => y + h + 0.38, 0.38, 8),
+        [m.stone, m.timber, m.stone],
         'roof',
       );
-      instance(
-        'Mechanical fan grilles',
-        cylinder,
-        dark,
-        [x + i * 3.4, y + 1.33, z],
-        [0.7, 0.06, 0.7],
-        'roof',
-      );
-    }
-  }
-  box('Landscape plinth', 0, -1.2, 0, 148, 2, 120, soil, 'landscape');
-  box('Campus apron', 0, -0.08, 0, 124, 0.2, 96, paving, 'landscape');
-  box('Public road', 0, 0.02, 53, 148, 0.08, 6, dark, 'landscape');
-  box('Public promenade', 0, 0.12, 46, 128, 0.25, 4, paving, 'landscape');
-  for (let x = -68; x < 70; x += 7)
-    instance('Road markings', cube, paving, [x, 0.07, 53], [3, 0.03, 0.12]);
-  for (let i = 0; i < 180; i++) {
-    const side = i % 4,
-      x =
-        side < 2
-          ? (side === 0 ? -1 : 1) * (65 + random() * 7)
-          : (random() - 0.5) * 142;
-    const z =
-      side < 2
-        ? (random() - 0.5) * 100
-        : (side === 2 ? -1 : 1) * (55 + random() * 3);
-    tree(x, z, 0, 0.7 + random() * 0.8);
-  }
-  for (let x = -54; x <= 54; x += 9) {
-    tree(x, 43, 0, 0.6);
-    shrubs(x + 3, 43);
-  }
-
-  if (id === 'A') {
-    // Four retreating landscape terraces with staggered wings and tall public glazing.
-    for (let row = 0; row < 4; row++) {
-      const z = 29 - row * 21,
-        y = row * 1.15,
-        w = 108 - row * 5,
-        h = 6.4;
-      box(
-        `Terrace ${row + 1} retaining base`,
-        0,
-        y / 2,
-        z,
-        w,
-        Math.max(0.1, y),
-        18,
-        stone,
-      );
-      box(
-        `Terrace ${row + 1} stone hall`,
-        0,
-        y + h / 2,
-        z - 2,
-        w,
-        h,
-        14,
-        stone,
-      );
-      box(
-        `Terrace ${row + 1} left wing`,
-        -w / 2 + 4,
-        y + h / 2,
-        z + 6,
-        8,
-        h,
-        6,
-        stone,
-      );
-      box(
-        `Terrace ${row + 1} right wing`,
-        w / 2 - 4,
-        y + h / 2,
-        z + 6,
-        8,
-        h,
-        6,
-        stone,
-      );
-      facade(
-        `Terrace ${row + 1} public front`,
-        row % 2 ? 7 : -9,
-        z + 8.1,
-        w * 0.7,
-        5.4,
-        y + 0.2,
-      );
-      box(
-        `Terrace ${row + 1} roof slab`,
-        0,
-        y + h,
-        z,
-        w + 0.3,
-        0.4,
-        18.4,
-        stone,
-        'roof',
-      );
-      planting(
-        `Terrace ${row + 1} roof garden`,
-        0,
-        z,
-        w - 3,
-        14,
-        y + h + 0.2,
-        110,
-      );
-      box(
-        `Terrace ${row + 1} roof walk`,
-        0,
-        y + h + 0.42,
-        z + 5,
-        w - 3,
-        0.14,
-        2,
-        paving,
+      b.box(p, x, y + h / 2, z - d / 2 + 2, w, h, 4, m.stone);
+      b.box(p, x - w / 2 + 1, y + h / 2, z, 2, h, d - 1, m.stone);
+      b.box(p, x + w / 2 - 1, y + h / 2, z, 2, h, d - 1, m.stone);
+      const glassLine = front.map(([px, pz]) => [px, pz - 1.35] as P2);
+      facade(p, glassLine, () => y + h - 0.05, y + 0.3);
+      const stairSide = i % 2 ? -1 : 1,
+        stairEndZ = z + d / 2 - 9.5;
+      for (let j = 0; j < outline.length; j++) {
+        const a = outline[j],
+          c = outline[(j + 1) % outline.length];
+        if (j === (i % 2 ? outline.length - 1 : front.length - 1)) {
+          const direction = Math.sign(c[1] - a[1]);
+          detail.line(
+            p,
+            a,
+            [a[0], stairEndZ - direction * 1.6],
+            y + h + 0.7,
+            0.4,
+            0.8,
+            m.stone,
+            'roof',
+          );
+          detail.line(
+            p,
+            [c[0], stairEndZ + direction * 1.6],
+            c,
+            y + h + 0.7,
+            0.4,
+            0.8,
+            m.stone,
+            'roof',
+          );
+        } else detail.line(p, a, c, y + h + 0.7, 0.4, 0.8, m.stone, 'roof');
+      }
+      b.box(
+        p,
+        x + stairSide * (w / 2 + 0.85),
+        y + h + 0.52,
+        stairEndZ,
+        4.7,
+        0.16,
+        3.2,
+        m.paving,
         'landscape',
       );
-      for (let x = -w / 2 + 6; x < w / 2 - 3; x += 12)
-        tree(x, z - 3, y + h + 0.4, 0.4);
-      box(
-        `Terrace ${row + 1} parapet`,
-        0,
-        y + h + 0.6,
-        z + 9,
-        w,
-        0.8,
-        0.35,
-        stone,
-        'roof',
+      for (const j of [0, 4])
+        detail.line(p, front[j], front[j + 1], y + h / 2, 0.65, h, m.stone);
+      const stairX = x + (i % 2 ? -1 : 1) * (w / 2 + 1.6);
+      detail.stairs(p, stairX, z + d / 2 + 2, 3, y, y + h + 0.6, 11.5);
+      detail.interior(p, x, z + 1, y + 0.3, w - 10, 5, y + h - 0.5);
+      b.box(p, x, y + h - 0.3, z + 4, w - 7, 0.12, 2.5, m.timber, 'canopy');
+      const garden = outline.map(
+        ([px, pz]) => [x + (px - x) * 0.957, z + (pz - z) * 0.8] as P2,
       );
-      const stairX = row % 2 ? -w / 2 + 3 : w / 2 - 3;
-      for (let j = 0; j < 25; j++)
-        box(
-          `Terrace ${row + 1} stair ${j}`,
-          stairX,
-          y + ((j + 1) * h) / 50,
-          z + 15 - j * 0.4,
-          3,
-          ((j + 1) * h) / 25,
-          0.42,
-          paving,
+      b.slab(p, garden, y + h + 0.39, 0.18, m.grass, 'landscape');
+      detail.meadow(
+        p,
+        garden,
+        () => y + h + 0.58,
+        180,
+        (px, pz) => pz > z + d / 2 - 4.2,
+      );
+      const path = front.map(
+        ([px, pz]) => [x + (px - x) * 0.94, pz - 2.4] as P2,
+      );
+      for (let j = 0; j < path.length - 1; j++)
+        detail.line(
+          p,
+          path[j],
+          path[j + 1],
+          y + h + 0.61,
+          1.35,
+          0.09,
+          m.gravel,
           'landscape',
         );
-    }
-    planting('Front meadow', -29, 40, 35, 4, 0, 45);
-    planting('Entrance garden', 30, 40, 31, 4, 0, 40);
-  } else if (id === 'B') {
-    // Lofted, folded ribbon roofs. Each roof has real thickness and angular ridge transitions.
-    for (let row = 0; row < 4; row++) {
-      const z = 28 - row * 22,
-        width = 108 - row * 3;
-      const profile = (u: number) =>
-        3.5 +
-        8.5 * Math.max(0, 1 - Math.abs(u - 0.36) / 0.39) +
-        2 * Math.max(0, 1 - Math.abs(u - 0.8) / 0.22);
-      const n = 64,
-        positions: number[] = [],
-        indices: number[] = [];
-      for (let layer = 0; layer < 2; layer++)
-        for (let j = 0; j < 2; j++)
-          for (let i = 0; i <= n; i++) {
-            const u = i / n,
-              x = (u - 0.5) * width;
-            positions.push(
-              x,
-              profile(u) + j * 1.6 - layer * 0.4,
-              z + (j - 0.5) * 17 + Math.sin(u * Math.PI) * 3,
-            );
-          }
-      const line = n + 1,
-        top = 2 * line;
-      for (let i = 0; i < n; i++) {
-        indices.push(i, i + 1, line + i, i + 1, line + i + 1, line + i);
-        indices.push(
-          top + i,
-          top + line + i,
-          top + i + 1,
-          top + i + 1,
-          top + line + i,
-          top + line + i + 1,
-        );
-        for (const edge of [0, line]) {
-          const a = edge + i;
-          indices.push(a, top + a, a + 1, a + 1, top + a, top + a + 1);
-        }
+      for (let k = 0; k < 5; k++) {
+        const px = x - w * 0.35 + k * w * 0.17;
+        detail.tree(p, px, z - 2, y + h + 0.58, 0.32 + (k % 2) * 0.04, k);
       }
-      for (const i of [0, n])
-        indices.push(i, line + i, top + i, line + i, top + line + i, top + i);
-      const g = new THREE.BufferGeometry();
-      g.setAttribute(
-        'position',
-        new THREE.Float32BufferAttribute(positions, 3),
-      );
-      g.setIndex(indices);
-      g.computeVertexNormals();
-      const roof = mesh(`Folded ribbon ${row + 1}`, g, silver, 'roof');
-      roof.material.side = THREE.DoubleSide;
-      // Wood underside follows the same fold rather than a flat box.
-      const underside = g.clone();
-      underside.translate(0, -0.07, 0);
-      mesh(`Timber soffit ${row + 1}`, underside, timber, 'canopy').scale.y =
-        0.95;
-      for (let seg = 0; seg < 27; seg++) {
-        const u = (seg + 0.5) / 27,
-          x = (u - 0.5) * width,
-          h = profile(u) - 0.5;
-        facade(
-          `Ribbon ${row + 1} bay ${seg + 1}`,
-          x,
-          z + 8.55 + Math.sin(u * Math.PI) * 3,
-          width / 27 - 0.08,
-          h,
-        );
-        const seam = box(
-          `Ribbon ${row + 1} seam ${seg}`,
-          x,
-          profile(u) + 0.83,
-          z + Math.sin(u * Math.PI) * 3,
-          0.035,
-          0.035,
-          17.1,
-          dark,
-          'roof',
-        );
-        seam.rotation.x = -Math.atan2(1.6, 17);
-      }
-      box(
-        `Ribbon ${row + 1} end enclosure`,
-        width / 2 - 4,
-        2.4,
-        z,
-        8,
-        4.8,
-        17,
-        silver,
-      );
-      if (row < 3) {
-        planting(`Ribbon court ${row + 1}`, 0, z - 12, 87, 4, 0, 70);
-        for (let x = -35; x < 40; x += 12) tree(x, z - 12, 0, 0.65);
+      interiorLight(p, x, y + 3.8, z + 3);
+      if (i < 3) {
+        const bed = ellipse(x, z - d / 2 - 1.15, w * 0.42, 0.9);
+        b.slab(planting, bed, y + 0.12, 0.26, m.soil, 'landscape');
+        detail.meadow(planting, bed, () => y + 0.4, 65);
       }
     }
-    box('Rear technical hall', 35, 4.3, -30, 30, 8.6, 18, silver);
-    equipment(24, -30, 8.6, 7);
-  } else if (id === 'C') {
-    // Three undulating annular roof shells: actual courtyard holes, continuous surfaces and fascia.
-    for (let row = 0; row < 3; row++) {
-      const cz = 26 - row * 29,
-        rx = 54 - row * 2,
-        rz = 16,
-        n = 160,
-        rings = 12;
-      const positions: number[] = [],
-        indices: number[] = [];
-      const point = (t: number, v: number, layer: number) => {
-        const rxi = rx * 0.44,
-          rzi = 5.5;
-        const x = Math.cos(t) * (rxi + (rx - rxi) * v);
-        const z =
-          cz + Math.sin(t) * (rzi + (rz - rzi) * v) + Math.sin(t * 2) * 2;
-        const y =
-          7.3 +
-          2.9 * Math.sin(t * 2 + 0.3) +
-          1.5 * Math.cos(t * 3 - row * 0.4) +
-          1.1 * Math.sin(v * Math.PI) -
-          layer * 0.38;
-        return [x, y, z];
-      };
-      const stride = n + 1,
-        layerSize = (rings + 1) * stride;
-      for (let layer = 0; layer < 2; layer++)
-        for (let r = 0; r <= rings; r++)
-          for (let i = 0; i <= n; i++)
-            positions.push(...point((i / n) * Math.PI * 2, r / rings, layer));
-      for (let layer = 0; layer < 2; layer++)
-        for (let r = 0; r < rings; r++)
-          for (let i = 0; i < n; i++) {
-            const a = layer * layerSize + r * stride + i,
-              b = a + stride;
-            if (layer === 0) indices.push(a, b, a + 1, a + 1, b, b + 1);
-            else indices.push(a, a + 1, b, a + 1, b + 1, b);
-          }
-      for (const r of [0, rings])
-        for (let i = 0; i < n; i++) {
-          const a = r * stride + i,
-            b = a + layerSize;
-          indices.push(a, a + 1, b, a + 1, b + 1, b);
-        }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute(
-        'position',
-        new THREE.Float32BufferAttribute(positions, 3),
+  else if (id === 'B')
+    for (const [i, r] of ribbons.entries()) {
+      const p = b.part(`Ribbon ${i + 1} folded hall`),
+        s = ribbonSurface(r);
+      const shell = ribbonShell(s.frontLine, s.rearLine, s.height, 0.36),
+        roofY = roofSampler(shell, s.height);
+      b.mesh(
+        p,
+        `Folded ribbon ${i + 1} closed shell`,
+        shell,
+        [m.silver, m.timber, m.timber],
+        'roof',
       );
-      g.setIndex(indices);
-      g.computeVertexNormals();
-      silver.side = THREE.DoubleSide;
-      mesh(`Continuous dune roof ${row + 1}`, g, silver, 'roof');
-      // Court and perimeter curtain walls follow the roof edge, segmented finely around the ellipse.
-      for (const edge of [0, 1])
-        for (let i = 0; i < n; i += 2) {
-          const a = point((i / n) * Math.PI * 2, edge, 1),
-            b = point(((i + 2) / n) * Math.PI * 2, edge, 1);
-          const len = Math.hypot(b[0] - a[0], b[2] - a[2]),
-            h = Math.min(a[1], b[1]) - 0.15;
-          const m = box(
-            `Dune ${row + 1} ${edge ? 'outer' : 'court'} glazing ${i}`,
-            (a[0] + b[0]) / 2,
-            h / 2,
-            (a[2] + b[2]) / 2,
-            len,
-            h,
-            0.08,
-            glass,
-            'facade',
-          );
-          m.rotation.y = -Math.atan2(b[2] - a[2], b[0] - a[0]);
-          instance(
-            'Dune mullions',
-            cube,
-            timber,
-            [a[0], h / 2, a[2]],
-            [0.1, h, 0.1],
-            'facade',
-          );
-          instance(
-            'Warm soffit edge',
-            cube,
-            timber,
-            [(a[0] + b[0]) / 2, h + 0.03, (a[2] + b[2]) / 2],
-            [len, 0.25, 1.2],
-            'canopy',
-            m.rotation.y,
-          );
-        }
-      // A planted oval stays inside the open court; floor surrounds it beneath the shell.
-      const court = mesh(
-        `Open courtyard ${row + 1}`,
-        new THREE.CircleGeometry(1, 64),
-        grass,
-        'landscape',
+      facade(
+        p,
+        s.frontLine.map(([x, z]) => [x, z - 2.6]),
+        (x, z) => roofY(x, z) - 0.36,
       );
-      court.rotation.x = -Math.PI / 2;
-      court.scale.set(rx * 0.4, 4.7, 1);
-      court.position.set(0, 0.14, cz);
-      for (let i = 0; i < 38; i++) {
-        const t = random() * Math.PI * 2,
-          r = Math.sqrt(random());
-        shrubs(Math.cos(t) * rx * 0.36 * r, cz + Math.sin(t) * 4 * r);
+      facade(p, s.rearLine.slice().reverse(), (x, z) => roofY(x, z) - 0.36);
+      const left = [s.frontLine[0], s.rearLine[0]],
+        right = [s.rearLine[96], s.frontLine[96]];
+      facade(p, left.reverse(), (x, z) => roofY(x, z) - 0.36, 0, true);
+      facade(p, right.reverse(), (x, z) => roofY(x, z) - 0.36, 0, true);
+      for (let x = r.min + 5; x < r.max - 4; x += 8) {
+        const z = s.front((x - r.min) / (r.max - r.min)) - 4,
+          h = roofY(x, z) - 0.42;
+        b.box(p, x, h / 2, z, 0.2, h, 0.2, m.timber, 'facade');
       }
-      for (let x = -16; x <= 16; x += 8) tree(x, cz, 0, 0.65);
-      // Interior warm floor bands, kept clear of each courtyard opening.
-      box(`Dune ${row + 1} south interior`, 0, 0.18, cz + 10, 75, 0.3, 5, glow);
-      box(
-        `Dune ${row + 1} north interior`,
-        0,
-        0.18,
-        cz - 10,
-        75,
-        0.3,
+      detail.interior(
+        p,
+        (r.min + r.max) / 2,
+        r.z + 2,
+        0.22,
+        r.max - r.min - 14,
         5,
-        paving,
+        (x, z) => roofY(x, z) - 0.55,
       );
-    }
-    box('Dune rear equipment enclosure', 38, 3.4, -34, 24, 6.8, 14, silver);
-    equipment(30, -34, 6.8, 5);
-  } else {
-    // Six technical halls flank a lower, luminous visitor spine.
-    for (let row = 0; row < 3; row++)
-      for (const side of [-1, 1]) {
-        const x = side * 33,
-          z = 26 - row * 30,
-          h = 8 + row * 0.7,
-          w = 39,
-          d = 22;
-        box(`Hall ${row + 1} ${side} enclosure`, x, h / 2, z, w, h, d, silver);
-        box(
-          `Hall ${row + 1} ${side} roof`,
-          x,
-          h,
-          z,
-          w + 0.5,
-          0.35,
-          d + 0.5,
-          paving,
-          'roof',
-        );
-        box(
-          `Hall ${row + 1} ${side} parapet front`,
-          x,
-          h + 0.65,
-          z + d / 2,
-          w,
-          1.3,
-          0.2,
-          silver,
-          'roof',
-        );
-        box(
-          `Hall ${row + 1} ${side} parapet rear`,
-          x,
-          h + 0.65,
-          z - d / 2,
-          w,
-          1.3,
-          0.2,
-          silver,
-          'roof',
-        );
-        for (let xx = x - w / 2; xx <= x + w / 2; xx += 0.85) {
-          instance(
-            'Vertical aluminum fins',
-            cube,
-            silver,
-            [xx, h / 2, z + d / 2 + 0.38],
-            [0.13, h, 0.8],
-            'facade',
-          );
-          instance(
-            'Rear aluminum fins',
-            cube,
-            silver,
-            [xx, h / 2, z - d / 2 - 0.38],
-            [0.13, h, 0.8],
-            'facade',
+      b.slab(p, s.outline, 0, 0.22, m.paving);
+      for (let x = r.min + 0.8; x < r.max - 0.5; x += 1.25) {
+        const u = (x - r.min) / (r.max - r.min);
+        for (let j = 0; j < 12; j++) {
+          const z1 = THREE.MathUtils.lerp(s.front(u), s.rear(u), j / 12),
+            z2 = THREE.MathUtils.lerp(s.front(u), s.rear(u), (j + 1) / 12);
+          b.beam(
+            p,
+            [x, roofY(x, z1) + 0.022, z1],
+            [x, roofY(x, z2) + 0.022, z2],
+            0.014,
+            m.seam,
+            'roof',
           );
         }
-        for (let zz = z - d / 2; zz < z + d / 2; zz += 0.85)
-          instance(
-            'Hall end fins',
-            cube,
-            silver,
-            [x + side * (w / 2 + 0.35), h / 2, zz],
-            [0.8, h, 0.13],
+      }
+      interiorLight(p, -18, Math.min(roofY(-18, r.z) - 1, 4.5), r.z + 2);
+      if (i < ribbons.length - 1) {
+        const next = ribbonSurface(ribbons[i + 1]),
+          xmin = Math.max(r.min, ribbons[i + 1].min) + 2,
+          xmax = Math.min(r.max, ribbons[i + 1].max) - 2;
+        const near: P2[] = [],
+          far: P2[] = [];
+        for (let j = 0; j <= 48; j++) {
+          const x = xmin + ((xmax - xmin) * j) / 48,
+            zA = s.rear((x - r.min) / (r.max - r.min)),
+            zB = next.front(
+              (x - ribbons[i + 1].min) /
+                (ribbons[i + 1].max - ribbons[i + 1].min),
+            );
+          near.push([x, zA - 0.35]);
+          far.push([x, zB + 0.35]);
+          if (j % 5 === 0 && zA - zB > 4)
+            detail.tree(planting, x, (zA + zB) / 2, 0.28, 0.56, j);
+        }
+        const bed = [...near, ...far.reverse()];
+        b.slab(planting, bed, 0.05, 0.18, m.soil, 'landscape');
+        detail.meadow(planting, bed, () => 0.24, 130);
+      }
+    }
+  else if (id === 'C') {
+    const p = b.part('Continuous dune roof and glazed halls');
+    const roof = roofShell(
+        duneOutline,
+        duneCourts.map((c) => c.outline),
+        duneHeight,
+        0.34,
+        1.4,
+      ),
+      roofY = roofSampler(roof, duneHeight);
+    b.mesh(
+      p,
+      'Continuous dune roof · connected shell',
+      roof,
+      [m.silver, m.timber, m.timber],
+      'roof',
+    );
+    const inset = duneOutline.map(([x, z]) => [x * 0.957, z * 0.957] as P2);
+    facade(
+      p,
+      [...inset, inset[0]].reverse(),
+      (x, z) => roofY(x, z) - 0.34,
+      0,
+      true,
+    );
+    b.mesh(
+      p,
+      'Dune interior floor with open gardens',
+      roofShell(
+        duneOutline,
+        duneCourts.map((c) => c.outline),
+        () => 0.19,
+        0.16,
+        10,
+      ),
+      [m.paving, m.paving, m.paving],
+      'massing',
+    );
+    for (const c of duneCourts) {
+      const court = b.part(`Garden court · ${c.id}`, 'landscape');
+      b.slab(court, c.outline, 0.03, 0.12, m.grass, 'landscape');
+      if (c.id !== 'entrance-oculus') {
+        facade(p, [...c.outline, c.outline[0]], (x, z) => roofY(x, z) - 0.34);
+        detail.meadow(court, c.outline, () => 0.19, Math.round(c.rx * c.rz));
+        for (const side of [-1, 1])
+          detail.tree(
+            court,
+            c.center[0] + side * c.rx * 0.35,
+            c.center[1],
+            0.19,
+            0.6,
+            side + 1,
+          );
+      }
+    }
+    for (let x = -54; x < 55; x += 1.15)
+      for (let z = -40; z < 39; z += 1.25) {
+        const z2 = z + 1.25;
+        const clear = (zz: number) =>
+          inside([x, zz], duneOutline) &&
+          !duneCourts.some((c) => inside([x, zz], c.outline));
+        if (clear(z) && clear(z2) && clear((z + z2) / 2))
+          b.beam(
+            p,
+            [x, roofY(x, z) + 0.024, z],
+            [x, roofY(x, z2) + 0.024, z2],
+            0.014,
+            m.seam,
+            'roof',
+          );
+      }
+    for (const [x, z] of [
+      [-26, 27],
+      [26, 29],
+      [-11, -1],
+      [34, -16],
+    ]) {
+      detail.interior(
+        p,
+        x,
+        z,
+        0.2,
+        14,
+        5,
+        (px, pz) => roofY(px, pz) - 0.5,
+        (px, pz) => duneCourts.some((c) => inside([px, pz], c.outline)),
+      );
+      interiorLight(p, x, Math.min(5, roofY(x, z) - 1), z);
+    }
+  } else {
+    for (const t of halls) {
+      const p = b.part(`Technical hall ${t.id}`),
+        { x, z, w, d, y, h } = t;
+      b.box(p, x, (y + h) / 2, z, w, y + h, d, m.back);
+      b.mesh(
+        p,
+        `Technical hall ${t.id} closed roof shell`,
+        roofShell(
+          [
+            [x - w / 2 - 0.15, z + d / 2 + 0.15],
+            [x + w / 2 + 0.15, z + d / 2 + 0.15],
+            [x + w / 2 + 0.15, z - d / 2 - 0.15],
+            [x - w / 2 - 0.15, z - d / 2 - 0.15],
+          ],
+          [],
+          () => y + h + 0.3,
+          0.3,
+          8,
+        ),
+        [m.silver, m.back, m.silver],
+        'roof',
+      );
+      for (const zz of [z - d / 2, z + d / 2])
+        detail.line(
+          p,
+          [x - w / 2, zz],
+          [x + w / 2, zz],
+          y + h + 0.65,
+          0.18,
+          1.0,
+          m.silver,
+          'roof',
+        );
+      for (const xx of [x - w / 2, x + w / 2])
+        detail.line(
+          p,
+          [xx, z - d / 2],
+          [xx, z + d / 2],
+          y + h + 0.65,
+          0.18,
+          1.0,
+          m.silver,
+          'roof',
+        );
+      for (let xx = x - w / 2 + 0.1; xx <= x + w / 2; xx += 0.76)
+        for (const side of [-1, 1])
+          b.instance(
+            p,
+            'Aluminum facade fins',
+            b.cube,
+            m.silver,
+            [xx, (y + h) / 2, z + side * (d / 2 + 0.32)],
+            [0.1, y + h, 0.67],
             'facade',
           );
-        equipment(x - 12, z, h + 0.2, 8);
-        box(
-          `Hall ${row + 1} connector ${side}`,
-          side * 10,
-          2.3,
-          z,
-          10,
-          4.6,
-          8,
-          glass,
+      for (let zz = z - d / 2 + 0.1; zz < z + d / 2; zz += 0.76)
+        for (const side of [-1, 1])
+          if (
+            side !== Math.sign(x) ||
+            ![-5, 0, 5].some((dz) => Math.abs(zz - z - dz) < 1.8)
+          )
+            b.instance(
+              p,
+              'Aluminum return fins',
+              b.cube,
+              m.silver,
+              [x + side * (w / 2 + 0.32), (y + h) / 2, zz],
+              [0.67, y + h, 0.1],
+              'facade',
+            );
+      detail.equipment(p, x, z, y + h + 0.35, w - 10, d - 9);
+      const side = x > 0 ? 1 : -1;
+      for (let j = 0; j < 3; j++) {
+        const pz = z - 5 + j * 5;
+        b.box(
+          p,
+          x + side * (w / 2 + 0.36),
+          y + 1.85,
+          pz,
+          0.1,
+          3.7,
+          3.2,
+          m.dark,
           'facade',
         );
-        if (row < 2) {
-          planting(`Hall court ${row + 1} ${side}`, x, z - 15, 35, 5, 0, 45);
-          for (let i = 0; i < 3; i++) tree(x - 12 + i * 12, z - 15, 0, 0.7);
-        }
+        for (let k = 0; k < 9; k++)
+          b.box(
+            p,
+            x + side * (w / 2 + 0.425),
+            y + 0.4 + k * 0.35,
+            pz,
+            0.035,
+            0.045,
+            2.9,
+            m.silver,
+            'facade',
+          );
       }
-    box('Lantern spine warm interior', 0, 2.5, 0, 10, 5, 80, glow, 'facade');
-    box('Lantern spine roof', 0, 5.8, 0, 16, 0.4, 83, silver, 'roof');
-    for (const side of [-1, 1]) {
-      box(
-        `Spine glazing ${side}`,
-        side * 7.7,
-        2.8,
-        0,
-        0.12,
-        5.6,
-        83,
-        glass,
+    }
+    for (const [i, t] of pavilions.entries()) {
+      const p = b.part(`Lantern pavilion ${i + 1}`),
+        { x, z, w, d, y, h } = t;
+      b.box(p, x, y / 2, z, w, Math.max(0.15, y), d, m.stone);
+      b.box(p, x, y + 0.1, z, w, 0.2, d, m.paving);
+      b.mesh(
+        p,
+        `Lantern pavilion ${i + 1} closed roof shell`,
+        roofShell(
+          [
+            [x - w / 2 - 0.25, z + d / 2 + 0.25],
+            [x + w / 2 + 0.25, z + d / 2 + 0.25],
+            [x + w / 2 + 0.25, z - d / 2 - 0.25],
+            [x - w / 2 - 0.25, z - d / 2 - 0.25],
+          ],
+          [],
+          () => y + h + 0.15,
+          0.3,
+          6,
+        ),
+        [m.silver, m.timber, m.silver],
+        'roof',
+      );
+      const outline: P2[] = [
+        [x - w / 2, z + d / 2],
+        [x + w / 2, z + d / 2],
+        [x + w / 2, z - d / 2],
+        [x - w / 2, z - d / 2],
+        [x - w / 2, z + d / 2],
+      ];
+      facade(p, [outline[1], outline[2]], () => y + h - 0.15, y + 0.2);
+      facade(p, [outline[3], outline[4]], () => y + h - 0.15, y + 0.2);
+      if (i === 0)
+        facade(p, [outline[0], outline[1]], () => y + h - 0.15, y + 0.2);
+      if (i === pavilions.length - 1)
+        facade(p, [outline[2], outline[3]], () => y + h - 0.15, y + 0.2);
+      detail.interior(p, x, z, y + 0.2, w - 3, d - 3, y + h - 0.3);
+      b.box(p, x - w / 2 + 0.8, y + 1.7, z, 0.18, 3, d - 6, m.timber, 'facade');
+      b.box(
+        p,
+        x - w / 2 + 1,
+        y + 3.25,
+        z,
+        0.18,
+        0.06,
+        d - 6,
+        m.light,
         'facade',
       );
-      for (let z = -40; z <= 41; z += 1.6)
-        instance(
-          'Spine mullions',
-          cube,
-          timber,
-          [side * 7.8, 2.8, z],
-          [0.13, 5.6, 0.13],
+      b.box(p, x, y + h - 0.25, z, w - 0.4, 0.12, d - 0.4, m.timber, 'canopy');
+      interiorLight(p, x, y + 4.8, z);
+      if (i === 0) {
+        b.box(p, x, y + 3.5, z - d / 2 + 3, w - 1, 0.2, 5, m.timber, 'facade');
+        detail.stairs(p, x - w / 2 + 2, z + 4, 1.7, y + 0.2, y + 3.6, 6.8);
+        detail.line(
+          p,
+          [x - w / 2 + 1, z - d / 2 + 5.5],
+          [x + w / 2 - 1, z - d / 2 + 5.5],
+          y + 4.45,
+          0.045,
+          0.045,
+          m.dark,
           'facade',
         );
+      }
+      const [bx, bz] = [
+        [-31, 9.5],
+        [-30, -16],
+        [32, -0.2],
+        [32, -23.4],
+      ][i];
+      const bed = ellipse(bx, bz, 5, 0.75);
+      b.slab(planting, bed, 0.12, 0.2, m.soil, 'landscape');
+      detail.meadow(planting, bed, () => 0.32, 28);
+      detail.tree(planting, bx, bz, 0.32, 0.48, i);
+      if (i > 0) {
+        const prev = pavilions[i - 1],
+          front = z + d / 2,
+          rear = prev.z - prev.d / 2;
+        const depth = Math.max(1, rear - front + 1.2),
+          cz = (front + rear) / 2;
+        b.box(p, x, y + h - 0.4, cz, w - 2, 0.25, depth, m.silver, 'roof');
+        detail.stairs(
+          p,
+          x,
+          cz + depth / 2,
+          w - 3,
+          prev.y,
+          y,
+          Math.max(3, depth),
+        );
+      }
     }
-    facade('Lantern entrance', 0, 41.6, 15.6, 5.6);
-    box('Entrance canopy', 0, 6.1, 43, 20, 0.3, 7, silver, 'canopy');
   }
-  // Shared scale cues: people, benches, bollards, truck docks and planting.
-  for (let i = 0; i < 46; i++) {
-    const x = (random() - 0.5) * 106,
-      z = 45 + random() * 3;
-    instance('People bodies', cylinder, dark, [x, 0.86, z], [0.2, 1.1, 0.2]);
-    instance('People heads', sphere, stone, [x, 1.58, z], [0.17, 0.19, 0.17]);
-  }
-  for (let x = -45; x <= 45; x += 15) {
-    box(
-      `Promenade bench ${x}`,
-      x,
-      0.5,
-      48,
-      2.5,
-      0.15,
-      0.65,
-      timber,
-      'landscape',
-    );
-    instance(
-      'Path bollards',
-      cylinder,
-      dark,
-      [x + 4, 0.6, 48],
-      [0.1, 1.2, 0.1],
-    );
-  }
-  for (let i = 0; i < 3; i++) {
-    box(`Delivery trailer ${i}`, 59, 1.5, -25 + i * 10, 3, 3, 7, paving);
-    box(`Delivery cab ${i}`, 59, 1.05, -20 + i * 10, 2.7, 2.1, 2, silver);
-  }
-  for (const [name, b] of batches) {
-    const m = new THREE.InstancedMesh(
-      b.geometry,
-      b.material,
-      b.matrices.length,
-    );
-    m.name = name;
-    m.userData.feature = b.feature;
-    b.matrices.forEach((matrix, i) => m.setMatrixAt(i, matrix));
-    m.instanceMatrix.needsUpdate = true;
-    m.castShadow = true;
-    m.receiveShadow = true;
-    root.add(m);
-  }
-  root.userData.sculptRuntime = {
-    parts: root.children.map((o) => o.name),
-    approximate: true,
+  const root = b.finish();
+  root.userData.sculptRuntime.entrances = [
+    {
+      id: `${id.toLowerCase()}-public-entrance`,
+      position: entrances[id],
+      facing: [0, 0, 1],
+    },
+  ];
+  // Materials unused in a construction pass must not escape the root's lifetime.
+  const used = new Set<THREE.Material>();
+  root.traverse((o) => {
+    if (o instanceof THREE.Mesh)
+      for (const mat of Array.isArray(o.material) ? o.material : [o.material])
+        used.add(mat);
+  });
+  for (const mat of Object.values(m).flat())
+    if (!used.has(mat)) {
+      for (const value of Object.values(mat))
+        if (value instanceof THREE.Texture) value.dispose();
+      mat.dispose();
+    }
+  root.userData.reference = {
+    image: demoConcept(id).image,
+    hiddenAreas:
+      'Rear facades, structure, interiors and topography inferred from one image.',
+    courtyards:
+      id === 'C' ? duneCourts.map((c) => ({ id: c.id, center: c.center })) : [],
   };
   return root;
 }

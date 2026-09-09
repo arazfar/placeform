@@ -74,7 +74,10 @@
       }
     },
     {
-      "files": ["components/placeform/film-panel.tsx"],
+      "files": [
+        "components/placeform/film-panel.tsx",
+        "components/placeform/legacy-films.tsx"
+      ],
       "rules": {
         "jsx-a11y/media-has-caption": "off"
       }

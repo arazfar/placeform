@@ -1,0 +1,14 @@
+{
+  "admitted": true,
+  "reasons": [],
+  "provenance": {
+    "viewpoint": "reference-hero",
+    "sourcePath": "/Users/arazfar/.codex/worktrees/3658/placeform/studio/public/assets/hackathon/datacenter_8.png",
+    "width": 1672,
+    "height": 941,
+    "foregroundCoverage": 0.8319,
+    "largestComponentFraction": 1.0,
+    "pHash": 16769401636575592620,
+    "duplicateOfHash": null
+  }
+}

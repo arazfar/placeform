@@ -8,6 +8,7 @@ import {
   fixedDemoSpec,
   DEMO_STORAGE_KEY,
 } from '../lib/demo-catalog';
+import { duneCourts } from '../lib/models/reference-data';
 import { buildDemoModel } from '../lib/demo-models';
 import { disposeArchitecture } from '../lib/architecture';
 import { videoReferences } from '../lib/video-reference';
@@ -50,7 +51,7 @@ void test('four models have distinct solid geometry, semantic parts, finite boun
     root.updateMatrixWorld(true);
     const bounds = new Box3().setFromObject(root),
       size = bounds.getSize(new Vector3());
-    assert.ok(size.x > 100 && size.x < 160 && size.z > 90 && size.y > 8);
+    assert.ok(size.x > 100 && size.x < 190 && size.z > 90 && size.y > 8);
     let vertices = 0;
     root.traverse((o) => {
       if (!(o instanceof Mesh)) return;
@@ -73,16 +74,20 @@ void test('four models have distinct solid geometry, semantic parts, finite boun
   assert.equal(signatures.size, 4);
 });
 
-void test('Civic Dune courtyard is an actual roof opening', () => {
+void test('all Civic Dune courtyards and the entrance oculus are actual roof openings', () => {
   const root = buildDemoModel('C');
   root.updateMatrixWorld(true);
-  const roofs = root.children.filter((o) =>
-    o.name.startsWith('Continuous dune roof'),
-  );
-  const ray = new Raycaster(new Vector3(0, 30, 26), new Vector3(0, -1, 0));
-  assert.equal(ray.intersectObjects(roofs).length, 0);
-  ray.set(new Vector3(0, 30, 38), new Vector3(0, -1, 0));
-  assert.ok(ray.intersectObjects(roofs).length > 0);
+  const roof = root.getObjectByName('Continuous dune roof · connected shell')!;
+  const ray = new Raycaster();
+  for (const court of duneCourts) {
+    ray.set(
+      new Vector3(court.center[0], 30, court.center[1]),
+      new Vector3(0, -1, 0),
+    );
+    assert.equal(ray.intersectObject(roof).length, 0, court.id);
+  }
+  ray.set(new Vector3(0, 30, 30), new Vector3(0, -1, 0));
+  assert.ok(ray.intersectObject(roof).length > 0);
   disposeArchitecture(root);
 });
 

@@ -10,7 +10,13 @@ export async function saveMedia(key: string, blob: Blob) {
   const db = await openDB();
   return new Promise<void>((resolve, reject) => {
     const tx = db.transaction('media', 'readwrite');
-    tx.objectStore('media').put(blob, key);
+    try {
+      tx.objectStore('media').put(blob, key);
+    } catch (error) {
+      db.close();
+      reject(error);
+      return;
+    }
     tx.oncomplete = () => {
       db.close();
       resolve();
@@ -18,6 +24,10 @@ export async function saveMedia(key: string, blob: Blob) {
     tx.onerror = () => {
       db.close();
       reject(tx.error);
+    };
+    tx.onabort = () => {
+      db.close();
+      reject(tx.error || new Error('Browser storage write was interrupted.'));
     };
   });
 }

@@ -1,4 +1,5 @@
 import { demoConcept } from './demo-catalog';
+import { presentationViews } from './demo-presentation';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import 'svg2pdf.js';
@@ -65,16 +66,18 @@ export async function reviewPackage(
   if (scene) {
     onProgress('Exporting the editable exterior model…');
     zip.file('model/exterior.glb', await scene.glb());
-    for (const [view, hour] of [
-      ['perspective', 15],
-      ['entrance', 15],
-      ['aerial', 15],
-      ['entrance', 19],
-    ] as const) {
+    for (const { view, hour } of presentationViews) {
       onProgress(
         `Rendering ${view} ${hour >= 18 ? 'at dusk' : 'in daylight'}…`,
       );
-      zip.file(`views/${view}-${hour}.png`, await scene.capture(view, hour));
+      zip.file(
+        `views/${view}-${hour}.png`,
+        await scene.capture(view, hour, {
+          width: 2560,
+          height: 1440,
+          quality: 'final',
+        }),
+      );
     }
   }
   zip.file(
